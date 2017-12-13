@@ -1042,7 +1042,7 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
             drawPoint = points.concat(points[points.length - 1]);
             if (points.length == 1) {
                 if (me._drawingType == BMAP_DRAWING_POLYLINE) {
-                    var ptId = me.verifyFirst(e);
+                    var ptId = me.verifyFirst(e,0);
                     if(!ptId){
                         me.close();
                         return false;
@@ -1055,6 +1055,11 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
                 }
                 map.addOverlay(overlay);
             } else {
+                var len = drawPoint.length-1;
+                var ptId = me.verifyFirst(e,len);
+                if(ptId){
+                    typeof ptId === "boolean"?null:overlay.UDF[len] = ptId;
+                }
                 overlay.setPath(drawPoint);
             }
             if (!isBinded) {

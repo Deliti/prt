@@ -176,7 +176,8 @@ export default {
                     offset: new BMap.Size(5, 5), //偏离值
                 },
                 polylineOptions: styleOptions, //线的样式
-                verifyFirst:this.verifyFirst,
+                verifyFirst:this.verifyAll,
+                verifyAll:this.verifyAll,
                 callback:this.drawLine
             });  
             drawingManager._setDrawingMode('polyline');
@@ -255,7 +256,7 @@ export default {
         /**@augments e 地图事件
          * @description 验证是否为第一个点
          */
-        verifyFirst(e){
+        verifyAll(e,num){
             const allPtArr = Object.keys(ALL_PT);
             let crossPt = "";
             console.log(allPtArr)
@@ -265,9 +266,10 @@ export default {
                     const dis = this.bmap.getDistance(e.point,targetPt);
                     if(dis < 5){
                         crossPt = i;
+                        break;
                     }
                 }
-                if(!crossPt){
+                if(num == 0 && !crossPt){
                     this.$message({
                         type:'info',
                         message:'请将地图放大到最大层级进行选择已存在的点'
