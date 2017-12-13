@@ -1,0 +1,99 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>轨迹回放(路书)</title>
+        <style type="text/css">
+            body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+            #map_canvas{width:100%;height:500px;}
+            #result {width:100%}
+        </style>
+        <script src="http://api.map.baidu.com/api?v=2.0&ak=ndYEn2os3DVI5fW83tzaUkD4"></script>
+        <script type="text/javascript" src="../../src/common/js/lib/LuShu_min.js"></script>
+    
+    </head>
+    <body>
+        <div id="map_canvas" class="BMap_mask"></div>
+    </body>
+    <script>
+        var marker;
+        var map = new BMap.Map('map_canvas');
+        map.enableScrollWheelZoom();
+        map.centerAndZoom(new BMap.Point(118.454, 32.955), 6);
+        var temp = {
+            pt: [],
+            mk: [],
+            iw: [],
+            iwOpenIndex: null,
+            mouseLabel: null,
+            poiSearchMark: null,
+            geoCoder: null
+        };
+        function createMouseMoveLabel(c) {
+            var a = map.pixelToPoint(new BMap.Pixel(0, 0));
+            var b = c.lng + "," + c.lat;
+            var d = new BMap.Label(b, {
+                point: a,
+                offset: new BMap.Size(13, 20),
+                enableMassClear: false
+            });
+            d.setStyle({
+                background: "#fff",
+                border: "#999 solid 1px",
+                zIndex: 10000000
+            });
+            map.addOverlay(d);
+            temp.mouseLabel = d
+        }
+        map.addEventListener("mousemove",
+            function(c) {
+                console.log(c);
+                map.setDefaultCursor("crosshair");
+                if (!temp.mouseLabel) {
+                    createMouseMoveLabel(c.point)
+                }
+                if (!temp.mouseLabel.isVisible()) {
+                    temp.mouseLabel.show()
+                }
+                var k = temp.mouseLabel;
+                var h = map.getContainer();
+                var g = h.clientWidth;
+                var f = h.clientHeight;
+                var j = 132;
+                var i = 19;
+                var n = map.pointToPixel(c.point).x + 13;
+                var l = map.pointToPixel(c.point).y + 20;
+                var m = map.pixelToPoint(new BMap.Pixel(g - j - 13, f - i - 20));
+                var b = map.pixelToPoint(new BMap.Pixel(n - j - 33, f - i - 20));
+                var d = c.point;
+                if (g - n < j) {
+                    d = new BMap.Point(m.lng, d.lat)
+                }
+                if (f - l < i) {
+                    d = new BMap.Point(d.lng, m.lat)
+                }
+                if (g - n - 16 < j && f - l < i) {
+                    d = b
+                }
+                k.setPosition(d);
+                k.setContent(c.point.lng + "," + c.point.lat)
+            });
+
+            document.body.addEventListener("mousemove",
+                function(c) {
+                    var c = window.event || c;
+                    var b = c.srcElement || c.target;
+                    console.log(c)
+                    if (b.className != "BMap_mask" && temp.mouseLabel && temp.mouseLabel.isVisible()) {
+                        temp.mouseLabel.hide()
+                    }
+                });
+            document.body.addEventListener("mouseout",
+                function(c) {
+                    var c = window.event || c;
+                    var b = c.srcElement || c.target;
+                    if (b.className == "BMap_mask" && temp.mouseLabel && temp.mouseLabel.isVisible()) {
+                        temp.mouseLabel.hide()
+                    }
+                });
+    </script>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<style type="text/css">
+	body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+	#allmap {width: 100%; height:500px; overflow: hidden;}
+	#result {width:100%;font-size:12px;}
+	dl,dt,dd,ul,li{
+		margin:0;
+		padding:0;
+		list-style:none;
+	}
+	p{font-size:12px;}
+	dt{
+		font-size:14px;
+		font-family:"微软雅黑";
+		font-weight:bold;
+		border-bottom:1px dotted #000;
+		padding:5px 0 5px 5px;
+		margin:5px 0;
+	}
+	dd{
+		padding:5px 0 0 5px;
+	}
+	li{
+		line-height:28px;
+	}
+	</style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ndYEn2os3DVI5fW83tzaUkD4"></script>
+	<!--加载鼠标绘制工具-->
+	<script type="text/javascript" src="../../src/common/js/lib/drawing.js"></script>
+	<link rel="stylesheet" href="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" />
+	<!--加载检索信息窗口-->
+	<script type="text/javascript" src="http://api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.js"></script>
+    <link rel="stylesheet" href="http://api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.css" />
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+	<title>鼠标绘制工具</title>
+</head>
+<body>
+	<div id="allmap" style="overflow:hidden;zoom:1;position:relative;">	
+		<div id="map" style="height:100%;-webkit-transition: all 0.5s ease-in-out;transition: all 0.5s ease-in-out;"></div>
+	</div>
+	<div id="result">
+		<input type="button" value="获取绘制的覆盖物个数" onclick="alert(overlays.length)"/>
+        <input type="button" value="清除所有覆盖物" onclick="clearAll()"/>
+        <input type="button" value="开启" onclick="drawingManager.open()">
+	</div>
+	<script type="text/javascript">
+	// 百度地图API功能
+    var map = new BMap.Map('map');
+    var poi = new BMap.Point(116.307852,40.057031);
+    map.centerAndZoom(poi, 16);
+    map.enableScrollWheelZoom();  
+    var overlays = [];
+	var overlaycomplete = function(e){
+        overlays.push(e.overlay);
+    };
+    var styleOptions = {
+        strokeColor:"red",    //边线颜色。
+        fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+        strokeWeight: 3,       //边线的宽度，以像素为单位。
+        strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
+        fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+        strokeStyle: 'solid' //边线的样式，solid或dashed。
+    }
+
+    var dashOptions = {
+        strokeColor:"red",    //边线颜色。
+        fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+        strokeWeight: 3,       //边线的宽度，以像素为单位。
+        strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
+        fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+        strokeStyle: 'dashed' //边线的样式，solid或dashed。 
+    }
+    //实例化鼠标绘制工具
+    //
+    var drawingManager = new BMapLib.DrawingManager(map, {
+        isOpen: true, //是否开启绘制模式
+        enableDrawingTool: false, //是否显示工具栏
+        drawingToolOptions: {
+            anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
+            offset: new BMap.Size(5, 5), //偏离值
+        },
+        // circleOptions: styleOptions, //圆的样式
+        polylineOptions: styleOptions, //线的样式
+        // polygonOptions: styleOptions, //多边形的样式
+        // rectangleOptions: styleOptions //矩形的样式
+        callback:callback
+    });  
+    drawingManager._setDrawingMode('polyline');
+    drawingManager.open();
+	 //添加鼠标绘制工具监听事件，用于获取绘制结果
+    drawingManager.addEventListener('overlaycomplete', overlaycomplete);
+    function clearAll() {
+		for(var i = 0; i < overlays.length; i++){
+            map.removeOverlay(overlays[i]);
+        }
+        overlays.length = 0   
+    }
+
+
+    // 画线结束后回调
+    // 将所有点传回 点之间的对应关系传回
+    // 得到点的后台数据 x,y,id,
+    // neighbor:[{ 相邻点id
+        // vertexId 点id
+        // edgeId 边id
+    // }]
+    function callback(points,overlay){
+        var resData = {
+            points:[],
+            line:[]
+        }
+        var newPoints = [];
+
+        // 模拟得到的后台数据
+        points.map(function(i,index){
+            // var neighbor = [];
+            neighbor = index == 0?[{
+                vertexId:'xaq1',
+                edgeId:'line1' 
+            }]:(index == 1?[
+                {
+                    vertexId:'xaq0',
+                    edgeId:'line1'  
+                },
+                {
+                    vertexId:'xaq2',
+                    edgeId:'line2' 
+                }
+            ]:[
+               {
+                    vertexId:'xaq1',
+                    edgeId:'line2' 
+                } 
+            ]);
+            var newPt = {
+                x:i.lng,
+                y:i.lat,
+                id:`xaq${index}`,
+                neighbor:neighbor
+            }
+            newPoints.push(newPt);
+        })
+        console.log(newPoints) 
+        resData.points = newPoints;
+        resData.line = [
+            {
+                id:'line1',
+                a:'xaq0',
+                b:'xaq1'
+            },
+            {
+                id:'line2',
+                a:'xaq1',
+                b:'xaq2'
+            }
+        ]
+
+        console.log(resData)
+
+        createPoints(resData.points);
+
+        resData.line.map(function(item,index){
+            createLine(item)
+        })
+
+        
+        map.removeOverlay(overlay);
+        // polyline.enableEditing();
+    }
+
+    // 以下验证点的唯一逻辑是否能走通  已成功
+    var allPoints = {};  // 所有的点集合
+    var tracks = {};
+
+    // 坐标点生成在地图上 并保存数据
+    function createPoints(points){
+        var nowP = '';
+        if(points && points instanceof Array){
+            nowP = {};
+            points.map(function(i,inx){
+                allPoints[i.id] = {};
+                $.extend(allPoints[i.id],i);
+
+                nowP[i.id] = {};
+                $.extend(nowP[i.id],i);
+            })
+        }
+
+        var points = nowP || allPoints;
+        for(var item in points){
+            var pt = points[item];
+            var mapPt = new BMap.Point(pt.x,pt.y);
+            var marker = new BMap.Marker(mapPt,{
+                icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))
+            })
+            marker.UDF = {};
+            $.extend(marker.UDF,pt);
+            map.addOverlay(marker);
+            marker.enableDragging();
+            _bind(marker,'dragging',drawDash);
+            _bind(marker,'dragend',dragDashEnd);
+        } 
+    }
+
+    // 绑定事件
+    function _bind(sth,doing,handle){
+        sth.addEventListener(doing,handle);
+    }
+
+    // 点拖拽时画虚线
+    // this 里有UDF e 中有point
+    // 思路是绑定在这条polyline对象中有个dashLine
+    function drawDash(e){
+        var neighbor = this.UDF.neighbor;
+        for(var i=0;i<neighbor.length;i++){
+            
+            var edgeId = neighbor[i].edgeId; 
+            var beLine = tracks[edgeId];
+            var dashTrack = []; // 新虚线
+            var nextPtId = neighbor[i].vertexId;
+            var nextPt = new BMap.Point(allPoints[nextPtId].x,allPoints[nextPtId].y);
+            dashTrack.push(e.point,nextPt);
+
+            if(beLine.dashLine instanceof BMap.Polyline){
+                beLine.dashLine.setPath(dashTrack);
+            }else{
+                beLine.dashLine = new BMap.Polyline(dashTrack,dashOptions);
+                map.addOverlay(beLine.dashLine); 
+            }
+        }
+    }
+
+    // 拖拽完成画实线
+    function dragDashEnd(e){
+        var neighbor = this.UDF.neighbor;
+        // todo 拖动轨道改变了之后把数据传过去，返回更新点的值
+        for(var i=0;i<neighbor.length;i++){
+            var edgeId = neighbor[i].edgeId; 
+            var beLine = tracks[edgeId];
+            var nextPtId = neighbor[i].vertexId;
+            var nextPt = new BMap.Point(allPoints[nextPtId].x,allPoints[nextPtId].y);
+
+            var newPath = []; // 新实线
+            newPath.push(e.point,nextPt);
+             
+            beLine.setPath(newPath); 
+            map.removeOverlay(beLine.dashLine); 
+            beLine.dashLine = null;
+        } 
+    }
+
+    // 模拟已存在轨道
+    function createLine(line){
+        var pts = [];
+
+        var ptA = allPoints[line.a];
+        var APt = new BMap.Point(ptA.x,ptA.y);
+        pts.push(APt);
+         
+        var ptB = allPoints[line.b];
+        var BPt = new BMap.Point(ptB.x,ptB.y);
+        pts.push(BPt);
+
+
+        tracks[line.id] = new BMap.Polyline(pts,styleOptions);
+        map.addOverlay(tracks[line.id]);
+        _bind(tracks[line.id],'mouseover',lighting);
+        _bind(tracks[line.id],'mouseout',resetWeight)
+    }
+
+    function lighting(e){
+        this.setStrokeWeight(10);
+    }
+    
+    function resetWeight(e){
+        console.log(this);
+        this.setStrokeWeight(3);
+    }
+
+    // createLine(line1,'line1');
+    // createLine(line2,'line2'); 
+    // createPoints();
+</script>
+</body>
+</html>

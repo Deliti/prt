@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+        #map{width:100%;height:500px;}
+        #result {width:100%}
+        .red{ background: red; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <h1>曲线</h1>
+    <div>
+        <button id="start">选择起始点</button>
+        lng: <input type="text" id="sPLng">
+        lat: <input type="text" id="sPLat">
+    </div>
+
+    <lebal>曲线与水平的夹角</lebal>
+    <input type="text" id="lineAngle">
+    <lebal>曲线的长度</lebal>
+    <input type="text" id="lineLen">
+    <lebal>曲线的弧度</lebal>
+    <input type="text" id="circleAngle">
+    <button id="output">生成曲线 </button>
+    <button id="dragBtn" class="red">开启拖拽</button>
+</body>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ndYEn2os3DVI5fW83tzaUkD4"></script>
+<script type="text/javascript" src="../../src/common/js/lib/cure.js"></script>
+
+<script type="text/javascript">
+var map = new BMap.Map("map");//创建地图实例
+map.enableScrollWheelZoom();
+map.centerAndZoom(new BMap.Point(118.454, 32.955), 6);
+// map.enableScrollWheelZoom();
+// var beijingPosition=new BMap.Point(116.432045,39.910683),
+//     hangzhouPosition=new BMap.Point(120.129721,30.314429),
+//     taiwanPosition = new BMap.Point(120.129721,26.314429)
+//     // taiwanPosition=new BMap.Point(121.491121,25.127053);
+// var points = [beijingPosition,hangzhouPosition, taiwanPosition];
+
+// var curve = new BMapLib.CurveLine(points, {strokeColor:"blue", strokeWeight:3, strokeOpacity:0.5}); //创建弧线对象
+// map.addOverlay(curve); //添加到地图中
+// curve.enableEditing(); //开启编辑功能
+
+var isChoose = false; // 只选一次
+var startPoint; // 初始点的坐标
+var points = [];
+initAction();
+function initAction(){
+    // 选择点的操作
+    $('start').addEventListener('click',toggleChoose)
+
+    function toggleChoose(){
+        if(isChoose){
+            return false;
+        }
+        isChoose = true;
+        map.addEventListener('click',setStartPoint)
+    }
+
+    function setStartPoint(e){
+        // console.log(e)
+            // e.point
+        startPoint = e.point;
+        var pointA = new BMap.Point(
+            e.point.lng,e.point.lat
+        )
+        points.push(pointA);
+        var marker = new BMap.Marker(pointA, {
+                icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)),
+                enableDragging: true,
+                raiseOnDrag: true
+            });
+        map.addOverlay(marker)
+        if(isChoose){
+            isChoose = false;
+            map.removeEventListener('click',setStartPoint)
+        }
+    }
+
+    // 生成线的操作
+    $('output').addEventListener('click',function(){
+        // 一堆判断条件
+        // angle 0度 - 360度
+        var angle = parseInt($('lineAngle').value);
+        var du = angle*Math.PI/180;
+        var len = $('lineLen').value;
+        var angle2 = parseInt($('circleAngle').value);
+        var fx = -1;
+        var angles = [{
+            angle1:angle,
+            angle2:angle2,
+            len:len,
+            direction:fx
+        }];
+
+
+        var mapProjection = map.getMapType().getProjection();
+    var PsA = mapProjection.lngLatToPoint(startPoint);
+        var addLng = len*Math.sin(du)
+        var addLat = len*Math.cos(du);
+        console.log("addLng -> "+addLng)
+        console.log("addLat -> "+addLat)
+        var psbx = PsA.x+addLat;
+        var psby = PsA.y+addLng;
+        var pb = mapProjection.pointToLngLat(new BMap.Pixel(psbx, psby))
+        console.log("pb ->"+pb)
+        var pointB = new BMap.Point(
+            pb.lng,
+            pb.lat
+        )
+// var R=6370996.81;
+// distance=R*Math.acos(Math.cos(lat1*pi/180 )*Math.cos(lat2*pi/180)*Math.cos(lng1*pi/180 -lng2*pi/180)+Math.sin(lat1*pi/180 )*Math.sin(lat2*pi/180));
+
+
+        var marker = new BMap.Marker(pointB, {
+                icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)),
+                enableDragging: true,
+                raiseOnDrag: true
+            });
+        map.addOverlay(marker)
+        
+       points.push(pointB);
+       
+       var polyline = new BMapLib.CurveLine(points, {strokeColor:"blue", strokeWeight:3, strokeOpacity:0.5},angles); //创建弧线对象
+
+        // var polyline = new BMap.Polyline(points,{strokeColor:"blue", strokeWeight:3, strokeOpacity:0.5});
+        polyline.dragFlag = false; // 拖拽默认关闭
+        polyline.addEventListener('click',handleLine);
+       map.addOverlay(polyline)
+       map.setViewport(points)
+    })
+
+    // 双击线段展示并绑定方法
+    function handleLine(e){
+        // 显示线段的信息
+        if(!this.dragFlag){
+            $('dragBtn').classList.remove('red');
+        }else{
+            $('dragBtn').classList.add('red');
+        }
+        var _self = this;
+        $('dragBtn').addEventListener('click',function(){
+            _self.dragFlag = !_self.dragFlag;
+            var polyLinePoints = _self.getPath();
+            pointDrag(polyLinePoints,_self);
+        })
+    }
+
+    // 对每个点进行绑定拖拽
+    function pointDrag(points,obj){
+        if(obj.dragFlag){
+            obj.dragMarkers = [];
+            for(var i = 0 ; i < points.length ; i++ ){
+                var marker = new BMap.Marker(points[i], {
+                    icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)),
+                    enableDragging: true,
+                    raiseOnDrag: true
+                });
+                marker.addEventListener('dragstart', function(e){
+                    this.startPoint = this.getPosition();
+                })
+                 marker.addEventListener('dragend', function(e){
+                     var nowPoint = e.point;
+                    var addLng = nowPoint.lng - this.startPoint.lng;
+                    var addLat = nowPoint.lat - this.startPoint.lat;
+                    for (var i = 0; i < points.length; i++) {
+                        points[i].lng += addLng;
+                        points[i].lat += addLat;
+                        // 消除之前的
+                        map.removeOverlay(obj.dragMarkers[i]);
+                    }
+                    obj.setPath(points);
+                    // 重新绑定
+                    pointDrag(points,obj);
+                });
+                marker.index = i;
+                obj.dragMarkers.push(marker);
+                map.addOverlay(marker)
+            }
+        }else{
+            for(var i = 0 ; i < points.length ; i++){
+                map.removeOverlay(obj.dragMarkers[i]);
+            }
+        }
+    }
+}
+
+
+function $(element){
+    return document.getElementById(element);
+}
+
+//  *  r = Math.sqrt(Math.pow((x2 - x1),2)+Math.pow((y2 - y1),2))/2/Math.sin(j/2)
+//  *  j1 = Math.atan((y2-y1)/(x2-x1))
+//  * j2 = Math.PI/2 - Math.atan((y2-y1)/(x2-x1)) - j/2
+//  * o = (r*Math.cos(j2)+x1,y1 - r*Math.sin(j2))
+//  * c = (-r*Math.cos(tj+j2)+x3,r*Math.sin(tj+j2)+y3)
+
+</script>
+</html>
+
+

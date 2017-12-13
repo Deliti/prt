@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>读取文件</title>
+    </head>
+    <body>
+        <img 
+         src="data:image/jpg;base64,/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwg
+         JC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjI
+         yMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCABkAGQDASIAAhEBAxEB/8QAHwAA
+         AQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1
+         FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGl
+         qc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl
+         5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQA
+         AQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSEl
+         KU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyM
+         nK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDi6+hvhn/yT3S/+2v/AKNej/hWfhD/AKBH
+         /kzL/wDF10WmaZZ6Np0VhYQ+TaxZ2JuLYySTyST1JrgwuFnSm5Sa2PrM+z7DZhho0qUZJqSeqXZro33LdFFFd58mFFFFABR
+         RRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRR
+         QAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUU
+         AFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB//9k="
+         alt="">
+        <script src="https://cuikangjie.github.io/JsonExportExcel/dist/JsonExportExcel.min.js"></script>
+
+         <input type="file" id="import"> 
+        <a id="aLink">下载</a>
+<script type="text/javascript">
+    function downloadFile (el, fileName, content) {
+        var aLink = document.querySelector(el);
+        content = JSON.stringify(content)
+        // var contents = [];
+        // for(var i in content){
+        //     contents.push({
+        //         i:content[i]
+        //     })
+        // }
+        var blob = new Blob([content],{
+            type:'application/json'
+        });                
+        aLink.download = fileName;
+        aLink.href = URL.createObjectURL(blob);
+    }
+    document.querySelector('#aLink').addEventListener('click',function () {
+        var obj = {
+            "a":"lalal",
+            "b":{
+                "c":"heihei",
+                "d":"嘿嘿"
+            }
+        }
+        downloadFile('#aLink', 'hello.json', obj);
+    })
+</script>
+    </body>
+
+    <script  type="text/javascript">
+        var fread = new FileReader();
+
+        document.querySelector('input').onchange = function(e){
+            var file = e.target.files[0];
+            fread.onload = function(res){
+                console.log(res);
+                
+                // fread.readAsArrayBuffer(newImg)
+            }
+            fread.readAsText(file)
+        }
+
+    </script>
+</html>
