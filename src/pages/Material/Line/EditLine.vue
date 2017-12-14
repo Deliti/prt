@@ -75,11 +75,6 @@ export default {
                     val: 0,
                     test: 'number'
                 },
-                wid:{    
-                    name:'宽度（米）',
-                    val: 0,
-                    test: 'number'
-                },
                 dirAngle:{    
                     name:'方向(与x轴夹角0 - 360度)',
                     val: 0,
@@ -118,7 +113,7 @@ export default {
             return !this.$route.query.track && this.showOpts;
         },
         inputList(){
-            let inputArr = ['len','wid','speed'];
+            let inputArr = ['len','speed'];
             switch(this.focus.id){
                 case 1:
                     break;
@@ -168,7 +163,6 @@ export default {
             const detail = trackData.detail.track;
             
             this.base.len.val = detail[0].length;
-            this.base.wid.val = detail[0].width;
             this.base.dirAngle.val = detail[0].arcAngle;
             this.base.dir.val = detail[0].arcDirection == 1?true:false;
             this.base.centralAngle.val = detail[0].radius;
@@ -202,7 +196,6 @@ export default {
                 "type":this.focus.id,  //轨道类型 1直轨 2弯轨  3坡轨
                 "isBroken":baseData.isBroken.val?1:0,  //是否损坏 1是 0否
                 "length":baseData.len.val,  //长度
-                "width":baseData.wid.val, //宽度
                 "radius":baseData.centralAngle.val,//圆心角 度（°）
                 "slope":baseData.slope.val,//斜率
                 "limitSpeed":baseData.speed.val, //限速

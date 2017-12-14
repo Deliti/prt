@@ -1,8 +1,6 @@
 <template>
     <section class="parent">
-        <div class="tips-title gray_2 f_origin">
-            基础素材 
-        </div>
+        <Nav-Title :name="name"></Nav-Title>
         <section class="aside-menu-box gray_3 f_white">
             <ul>
                 <li class="square icon-1 text" @click="linkTo('line')">轨道</li>
@@ -16,7 +14,16 @@
 
 <script>
 import router from '@/router'
+import NavTitle from './Title'
 export default {
+    data(){
+        return {
+            name:'基础素材'
+        }
+    },
+    components:{
+        NavTitle
+    },
     methods:{
         linkTo(path){
             router.push(`${path}`);
@@ -28,22 +35,15 @@ export default {
 <style lang="less" scoped>
 @screen-md:1200px;
 @screen-lg:1800px;
-
-.tips-title{
-    height: 30px;
-    line-height: 30px;
-    box-sizing: border-box;
-    padding-left: 50px;
-    border-top: 2px solid #eee;
-    border-bottom: 2px solid #eee;
-    @media (min-width:@screen-lg) {
-        height: 45px;
-        line-height: 45px;
-    }
+.parent{
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
+
 .aside-menu-box{
     box-sizing: border-box;
-    padding: 20px 35px 0;
+    padding: 50px 35px 0;
     position: relative;
     @media (min-width:@screen-lg) {
         padding: 35px 50px;
@@ -95,10 +95,7 @@ export default {
     }
 }
 
-.parent{
-    position: relative;
-    height: 100%;
-}
+
 // .child{
 //     position: absolute;
 //     left: 0;top:30px;

@@ -65,6 +65,7 @@ export default new Router({
         },
         {
           path: 'station',
+          name:'station',
           component: StaList
         },
         {
@@ -73,6 +74,7 @@ export default new Router({
         },
         {
           path: 'save',
+          name: 'save',
           component: SaveList
         },
         {

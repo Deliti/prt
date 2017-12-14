@@ -1,20 +1,12 @@
 <template>
-    <section class="aside-menu-box gray_3 f_origin">
-        <ul>
-            <li 
-                v-for="(item,index) in saveList" 
-                :key="index" 
-                class="square text"
-                @click="focusIt(item.id)" >{{item.name}}</li>
-            <li class="text square add" v-if="!mapFlag" @click="addNew()"></li>
-        </ul>
-        <div class="right" @click="goBack()">
-            返回
-            <i class="return-btn"></i>
-        </div>
-        <div v-show="isHttp" class="hide-wrap">
-            <div class="hide-loading"></div>
-        </div>
+    <section>
+        <List 
+            :name="name"
+            :isHttp="isHttp"
+            :list="saveList"
+            @itemHandle="focusIt"
+            @addHandle="addNew"
+        ></List>
     </section>
 </template>
 
@@ -22,12 +14,14 @@
 import router from '@/router'
 import {mapState,mapMutations} from 'vuex';
 import { getMaterial } from '@/service/getData'
+import List from '../List'
 
 export default {
     data(){
         return {
             saveList:[],
-            isHttp:false
+            isHttp:false,
+            name:'车辆存储列表'
         }
     },
     computed:{
@@ -35,6 +29,9 @@ export default {
     },
     created(){
         this.getList();
+    },
+    components:{
+        List
     },
     methods:{
         ...mapMutations(['SETSAVEEDITID']),
@@ -63,7 +60,8 @@ export default {
             this.SETSAVEEDITID('add');
             router.push('editSave')
         },
-        focusIt(id){  // 选中这条轨迹并进行编辑
+        focusIt(item){  // 选中这条轨迹并进行编辑
+            const {id} = item;
             this.SETSAVEEDITID(id);
             this.$root.eventHub.$emit('foucsIt','save');
             router.push(`editSave?save=${id}`)
@@ -73,41 +71,41 @@ export default {
 </script>
 
 
-<style lang="less" scoped>
-@screen-md:1200px;
-@screen-lg:1800px;
+// <style lang="less" scoped>
+// @screen-md:1200px;
+// @screen-lg:1800px;
 
-.aside-menu-box{
-    box-sizing: border-box;
-    padding: 20px 40px 0;
-    ul{
-        overflow: hidden;
-        li{
-            width: 80px;
-            height: 80px;
-            margin-bottom:20px; 
-            @media (min-width:@screen-lg) {
-                 width: 150px;
-                 height: 150px;
-                 line-height: 150px;
-            }
-            &:nth-child(even){
-                float:right;
-            }
-            &:nth-child(odd){
-                float: left;;
-            }
-        }
-        .text{
-            text-align: center;
-            line-height: 80px;
-        }
-        .add{
-            background: url('../img/add.png') no-repeat center center;
-            background-size: 50% 50%;
-            cursor: pointer;
-        }
-    }
-}
-</style>
+// .aside-menu-box{
+//     box-sizing: border-box;
+//     padding: 20px 40px 0;
+//     ul{
+//         overflow: hidden;
+//         li{
+//             width: 80px;
+//             height: 80px;
+//             margin-bottom:20px; 
+//             @media (min-width:@screen-lg) {
+//                  width: 150px;
+//                  height: 150px;
+//                  line-height: 150px;
+//             }
+//             &:nth-child(even){
+//                 float:right;
+//             }
+//             &:nth-child(odd){
+//                 float: left;;
+//             }
+//         }
+//         .text{
+//             text-align: center;
+//             line-height: 80px;
+//         }
+//         .add{
+//             background: url('../img/add.png') no-repeat center center;
+//             background-size: 50% 50%;
+//             cursor: pointer;
+//         }
+//     }
+// }
+// </style>
 

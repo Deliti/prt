@@ -72,7 +72,7 @@ export default {
                     test: 'number'
                 },
                 station:{
-                    name:'最近站台名',
+                    name:'输入站台编号',
                     val:''
                 },
                 isBroken:{        
