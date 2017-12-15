@@ -1,5 +1,5 @@
 <template>
-    <section>
+    <section class="list-wrap">
         <Nav-Title :name="name"></Nav-Title>
         <section class="aside-menu-box gray_3 f_origin">
             <ul>
@@ -58,6 +58,9 @@ export default {
 @screen-md:1200px;
 @screen-lg:1800px;
 
+.list-wrap{
+    height: 100%;
+}
 .aside-menu-box{
     box-sizing: border-box;
     height: 100%;

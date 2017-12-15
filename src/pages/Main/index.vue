@@ -3,7 +3,10 @@
         <div id="map" class="BMap_mask">
             <div style="display:none">{{delStation}}{{delSave}}</div>
         </div>
-        <div class='shade' v-if="isHttp"></div>
+        <div v-show="isHttp" class="hide-wrap shade">
+            <div class="hide-loading"></div>
+            <p>正在加载数据...</p>
+        </div>
     </div>
     
     
@@ -18,27 +21,44 @@ import {getParam,transRes,_bind} from '@/config/mUtils'
 import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.getLine'
 import savepng from '@/assets/save.png'
 import bigIcon from './img/icon-big.png';
+import carIcon from './img/car.png';
 import { getMaterial,editStorage,addTrack } from '@/service/getData'
 
 
 let carList = {};  // 所有车辆数组
 let carMarkers = []; // 车辆最初carMarker
 let drawingManager = null; // 绘图工具
-const styleOptions = {
-    strokeColor:"red",    //边线颜色。
-    fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+const dashStyleOptions = {
+    strokeColor:"green",    //边线颜色。
+    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
-    strokeStyle: 'solid' //边线的样式，solid或dashed。
+    strokeStyle: 'dashed' //边线的样式，solid或dashed。
+}
+const styleOptions = {
+    strokeColor:"green",    //边线颜色。
+    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeWeight: 3,       //边线的宽度，以像素为单位。
+    strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
+    fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+    strokeStyle: 'solid' //边线的样式，solid或dashed。  
 }
 const dashOptions = {
-    strokeColor:"red",    //边线颜色。
-    fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeColor:"green",    //边线颜色。
+    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
     strokeStyle: 'dashed' //边线的样式，solid或dashed。 
+}
+const labelStyle = {
+    color : "green",
+    fontSize : "12px",
+    borderColor: 'green',
+    height : "20px",
+    lineHeight : "20px",
+    fontFamily:"微软雅黑"
 }
 const storageOptions = {
     strokeColor:"blue",    //边线颜色。
@@ -175,7 +195,7 @@ export default {
                     anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
                     offset: new BMap.Size(5, 5), //偏离值
                 },
-                polylineOptions: styleOptions, //线的样式
+                polylineOptions: dashStyleOptions, //线的样式
                 verifyFirst:this.verifyAll,
                 verifyAll:this.verifyAll,
                 callback:this.drawLine
@@ -202,6 +222,7 @@ export default {
             }else{
                 this.createPoint(allList.detail[1].vertexList,true); 
             }
+            console.log('all',JSON.stringify(ALL_STATION))
             setTimeout(() => {
                 this.createLine(allList.detail[1].edgeList);
                 allList.detail[2].map((item) => {
@@ -230,7 +251,7 @@ export default {
             let points;
             switch(type){
                 case 'line':
-                    const linePoints = ALL_LINE[id].getPath();
+                    const linePoints = ALL_LINE[id].line.getPath();
                     this.bmap.setViewport(linePoints);
                     break;
                 case 'station':
@@ -412,16 +433,28 @@ export default {
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
                     return false;
                 }
-                ALL_LINE[item.edgeId] = new BMap.Polyline(pts,styleOptions);
-                map.addOverlay(ALL_LINE[item.edgeId]);
-                _bind(ALL_LINE[item.edgeId],'mouseover',function(){
+                styleOptions.strokeColor =  item.isBroken?'red':'green'; 
+                ALL_LINE[item.edgeId] = {};
+                ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
+                map.addOverlay(ALL_LINE[item.edgeId].line);
+                const lineLabel = new BMap.Label(item.name,{
+                    offset:new BMap.Size(20,-10),
+                    position:new BMap.Point(
+                        (ptA.lon+ptB.lon)/2,
+                        (ptA.lat+ptB.lat)/2
+                    )
+                })   
+                lineLabel.setStyle(labelStyle);
+                ALL_LINE[item.edgeId].label = lineLabel;
+                map.addOverlay(lineLabel);
+                _bind(ALL_LINE[item.edgeId].line,'mouseover',function(){
                     this.setStrokeWeight(10);
                 });
-                _bind(ALL_LINE[item.edgeId],'mouseout',function(){
+                _bind(ALL_LINE[item.edgeId].line,'mouseout',function(){
                     this.setStrokeWeight(3);
                 })
-                _bind(ALL_LINE[item.edgeId],'click',() => {
-                    const linePoints = ALL_LINE[item.edgeId].getPath();
+                _bind(ALL_LINE[item.edgeId].line,'click',() => {
+                    const linePoints = ALL_LINE[item.edgeId].line.getPath();
                     this.bmap.setViewport(linePoints);
                     router.push(`editLine?track=${item.edgeId}`);
                 })
@@ -433,7 +466,7 @@ export default {
             const neighbor = thisPt.neighbor;
             for(var i=0;i<neighbor.length;i++){
                 var edgeId = neighbor[i].edgeId; 
-                var beLine = ALL_LINE[edgeId];
+                var beLine = ALL_LINE[edgeId].line;
                 var dashTrack = []; // 新虚线
                 var nextPtId = neighbor[i].vertexId;
                 var nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
@@ -466,12 +499,19 @@ export default {
              // todo 拖动轨道改变了之后把数据传过去，返回更新点的值
             for(var i=0;i<neighbor.length;i++){
                 var edgeId = neighbor[i].edgeId; 
-                var beLine = ALL_LINE[edgeId];
+                const {
+                    line:beLine,
+                    label
+                } = ALL_LINE[edgeId];
                 var nextPtId = neighbor[i].vertexId;
                 var nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
-
+                label.setPosition(new BMap.Point(
+                    (ALL_PT[nextPtId].lon+e.point.lng)/2,
+                    (ALL_PT[nextPtId].lat+e.point.lat)/2, 
+                ))
                 var newPath = []; // 新实线
                 newPath.push(e.point,nextPt);
+                
                 beLine.setPath(newPath); 
                 // 将变化的线传过去
                 this.bmap.removeOverlay(beLine.dashLine); 
@@ -514,7 +554,8 @@ export default {
          *  轨道id和孤立的点
          */
         deleteEdge({edgeId,vertexIds}){
-            this.bmap.removeOverlay(ALL_LINE[edgeId]);
+            this.bmap.removeOverlay(ALL_LINE[edgeId].line);
+            this.bmap.removeOverlay(ALL_LINE[edgeId].label);
             delete ALL_LINE[edgeId];
             vertexIds.map(item => {
                 this.bmap.removeOverlay(ALL_MARKER[item]);
@@ -672,6 +713,7 @@ export default {
          * vertexId  对应的点 id
          */
         importStation({id,vertexId,name}){
+            console.log(!ALL_STATION[id])
             if(!ALL_STATION[id]){
                 this.outputStation(id,vertexId,name);
             }
@@ -849,7 +891,7 @@ export default {
                 const startName = ALL_STATION[startStaId].name; 
                 const endName = ALL_STATION[endStaId].name;
                 let marker = new BMap.Marker(stPosition,{
-                    icon: new BMap.Icon('http://developer.baidu.com/map/jsdemo/img/car.png', new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})
+                    icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})
                 });
                 this.carNum++;
                 this.bmap.addOverlay(marker);
@@ -895,7 +937,7 @@ export default {
                 landmarkPois:[],
                 defaultContent: `起始站${opts.startName} 到 终点站${opts.endName}`,//覆盖物内容，这个填上面的特殊点文字才会显示
                 // speed: 600,//路书速度
-                icon: new BMap.Icon('http://developer.baidu.com/map/jsdemo/img/car.png', new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)}),//覆盖物图标，默认是百度的红色地点标注
+                icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)}),//覆盖物图标，默认是百度的红色地点标注
                 autoView: false,//自动调整路线视野
                 enableRotation: true,//覆盖物随路线走向
                 callback:() => {
@@ -957,7 +999,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .map-box{
     position: relative;
     float: left;
@@ -974,7 +1016,16 @@ export default {
     z-index: 9999;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, .3);
+    p{
+        position: absolute;
+        width: 100%;
+        left: 0;
+        bottom: 40%;
+        font-size: 26px;
+        line-height: 30px;
+        text-align: center;
+    }
+    /* background:url('./img/loading.png') rgba(255, 255, 255, .3); */
 }
 </style>
 
