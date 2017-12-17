@@ -13,14 +13,9 @@
                 <p v-else>
                     {{data[item.key]}}
                 </p>
-                <!-- <p v-if="item.key == 'null'">10</p>
-                <p v-else-if="item.key == 'createTime'">{{data.createTime}}</p>
-                <p v-else>{{item.key}}</p> -->
             </div>
         </li>
-         <!-- <dl>模拟器存档</dl>
-         <dt>{{data.createTime}}</dt>
-         <div v-show="showDel" class="del" @click.stop="delIt"></div> -->
+        <li v-show="showDel" class="del-box" @click.stop="delIt"></li>
     </ol>
 </template>
 
@@ -30,6 +25,9 @@ export default {
         return{
             showDel:false,
             list:[{
+                name:'名称',
+                key:'eventName'
+            },{
                 name:'存档',
                 key:'image'
             },
@@ -78,8 +76,9 @@ export default {
 @screen-lg:1800px;
 .item-box{
     display: flex;
-    width: 500px;
+    width: 600px;
     margin: 30px auto;
+    position: relative;
     @media (min-width:@screen-lg) {
         width: 750px;
         margin: 45px auto;
@@ -95,7 +94,7 @@ export default {
         //         font-size: 60px;
         //     }
         // }
-        &:nth-child(4){
+        &:nth-child(5){
             .content{
                 display: flex;
                 line-height: 16px;
@@ -109,7 +108,7 @@ export default {
                 }
             }
         }
-        &:nth-child(5){
+        &:nth-child(6){
             .content{
                 line-height: 16px;
                 font-size: 14px;
@@ -139,14 +138,14 @@ export default {
             color: #FCB415;
             height: 100px;
             line-height: 100px;
-            font-size: 45px;
+            font-size: 20px;
             text-align: center;
             background: rgba(0, 0, 0, .3);
             box-shadow: 0px 6px 4px rgba(0, 0, 0, .5);
             cursor: pointer;
             @media (min-width:@screen-lg) {
                 height: 150px;
-                font-size: 85px;
+                font-size: 25px;
                 line-height: 150px;
             }
             p{
@@ -158,18 +157,20 @@ export default {
             }
         }   
     }
+    .del-box{
+        position: absolute;
+        left: 100%;top:36px;
+        width: 100px;
+        height: 100px;
+        background:  url('../delete.png') no-repeat center;
+        background-size: 48px 48px;
+        cursor: pointer;
+        @media (min-width:@screen-lg) {
+            top:45px;
+            width: 150px;
+            height: 150px;
+            background-size: 60px 60px; 
+        }
+    }
 }
 </style>
-
-<style scoped>
-.del{
-    width: 200px;
-    height: 60px ;
-    position: absolute;
-    left: 0;bottom: 0;
-    opacity: .2;
-    background: #eee url('../delete.png') no-repeat center;
-    background-size: 48px 48px;
-}
-</style>
-

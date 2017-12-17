@@ -19,32 +19,6 @@
                 >添加场景</div>
         </div> 
     </div>
-    <!-- <div>
-        <header class="gray_3">
-            <div class="left title f_white">
-                <i></i> 
-                <span>添仂智能科技</span>
-            </div>
-        </header>
-        <div class="welcome orange">
-            <h1>{{welcomeWord}}</h1>
-            <p class="help">点击查看使用手册</p>
-        </div>
-        <div class="content">
-            <ul class="list-content">
-                <listItem 
-                    v-for="(item,index) in eventList"
-                    :key="index"
-                    @enter="enterPRT(item.id)"
-                    :data="item"
-                    @delEvent="delEvent(item.eventId)"
-                    ></listItem>
-                <li class="add-event" 
-                    @click="addEvent"
-                    ></li>
-            </ul>
-        </div>
-    </div> -->
 </template>
 
 <script>
@@ -88,18 +62,26 @@ export default {
         listItem
     },
     methods:{
-        async addEvent(){
-            const addData = await createEvent();
-            if(addData.result != 0){
-                this.$message({
-                    message: addData,
-                    type: 'warning',
-                    duration: 2000
-                })
-                return false;
-            }
-            const {id} = addData.detail;
-            router.push(`/simulator/${id}`);
+        addEvent(){
+            this.$prompt('请输入名称', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPattern:/\S/, 
+            }).then(async ({ value }) => {
+                const addData = await createEvent(value);
+                if(addData.result != 0){
+                    this.$message({
+                        message: addData,
+                        type: 'warning',
+                        duration: 2000
+                    })
+                    return false;
+                }
+                const {id} = addData.detail;
+                router.push(`/simulator/${id}`);
+            }).catch(() => {
+                      
+            });
         },
         async getEventList(){
             const data = await getEventList();
@@ -199,76 +181,3 @@ export default {
 }
 
 </style>
-
-<style scoped>
-/* 
-header{
-    width: 100%;
-    height: 40px;
-    position: relative;
-}
-.title{
-    cursor: pointer;
-}
-.title i{
-    float: left;
-    width: 50px;
-    height: 40px; 
-    background: url('./nav.png') no-repeat 0 0;
-    background-size: 50px 40px; 
-}
-.title span{
-    float: left;
-    width: 90px;
-    height: 40px;
-    text-align:center;
-    line-height: 40px;
-} 
-.welcome{
-    padding: 30px 0 20px 100px;
-    border: 1px solid #000;
-}
-.welcome h1{
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-.help{
-    color:cornflowerblue;
-}
-.content{
-    overflow: auto;
-}
-.list-content{
-    overflow: hidden;
-}
-.list-content .item{
-    float: left;
-    width: 140px;
-    height: 120px;
-    font-weight: bold;
-    color: #000;
-    font-size: 16px;
-    margin:0 30px 20px 0;
-    padding: 80px 0 0 60px;
-    position: relative;
-    cursor: pointer;
-}
-.list-content .item .del{
-    width: 200px;
-    height: 60px ;
-    position: absolute;
-    left: 0;bottom: 0;
-    opacity: .2;
-    background: #eee url('./delete.png') no-repeat center;
-    background-size: 48px 48px;
-}
-.add-event{
-    float: left;
-    width: 70px;
-    height: 200px;
-    background: url('./add.png') no-repeat center;
-    background-size: 50px 50px; 
-    cursor: pointer;
-} */
-</style>
-

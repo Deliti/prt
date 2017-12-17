@@ -10,8 +10,12 @@
 let baseUrl; 
 let routerMode;
 let basePath;
-const appid = "3006123203";
 const imgBaseUrl = '';
+const trackColor = {
+	normal:'#00a651',
+	broken:'#524fa1',
+	crowd:'#b72467'
+}
 const defaultPosition = {
 	latitude:'32.028937',
 	longitude:'118.787164'
@@ -19,16 +23,17 @@ const defaultPosition = {
 if (process.env.NODE_ENV == 'development') {
 	basePath = ''
 	baseUrl = '/api';
+
 }else{
 	basePath = '';
 	baseUrl = 'http://101.132.98.201:8087';
 }
 
 export {
-	appid,
 	baseUrl,
 	basePath,
 	routerMode,
 	imgBaseUrl,
+	trackColor,
 	defaultPosition
 }

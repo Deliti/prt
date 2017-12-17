@@ -17,6 +17,7 @@ import {MP} from '@/service/map'
 import router from '@/router'
 import {mouseEnterHandle,mouseOutHandle} from 'common/js/lib/mouse'
 import {mapState,mapMutations} from 'vuex'
+import {trackColor} from '@/config/env'
 import {getParam,transRes,_bind} from '@/config/mUtils'
 import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.getLine'
 import savepng from '@/assets/save.png'
@@ -28,34 +29,35 @@ import { getMaterial,editStorage,addTrack } from '@/service/getData'
 let carList = {};  // 所有车辆数组
 let carMarkers = []; // 车辆最初carMarker
 let drawingManager = null; // 绘图工具
+const { normal, broken, crowd } = trackColor;
 const dashStyleOptions = {
-    strokeColor:"green",    //边线颜色。
-    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeColor:normal,    //边线颜色。
+    fillColor:normal,      //填充颜色。当参数为空时，圆形将没有填充效果。
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
     strokeStyle: 'dashed' //边线的样式，solid或dashed。
 }
 const styleOptions = {
-    strokeColor:"green",    //边线颜色。
-    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeColor:normal,    //边线颜色。
+    fillColor:normal,      //填充颜色。当参数为空时，圆形将没有填充效果。
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
     strokeStyle: 'solid' //边线的样式，solid或dashed。  
 }
 const dashOptions = {
-    strokeColor:"green",    //边线颜色。
-    fillColor:"green",      //填充颜色。当参数为空时，圆形将没有填充效果。
+    strokeColor:normal,    //边线颜色。
+    fillColor:normal,      //填充颜色。当参数为空时，圆形将没有填充效果。
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
     strokeStyle: 'dashed' //边线的样式，solid或dashed。 
 }
 const labelStyle = {
-    color : "green",
+    color : normal,
     fontSize : "12px",
-    borderColor: 'green',
+    borderColor: normal,
     height : "20px",
     lineHeight : "20px",
     fontFamily:"微软雅黑"
@@ -318,7 +320,7 @@ export default {
                 }
                 vertexList.push(pointItem);
                 if(index < points.length-1){
-                    const nxtId = `temp_${index+1}`;
+                    const nxtId = overlay.UDF[index+1]?overlay.UDF[index+1]:`temp_${index+1}`;
                     const edgeItem = {
                         edgeId:`edge_temp_${index}`,
                         src:vId,
@@ -420,6 +422,8 @@ export default {
         },
         // 根据后端返回的点保存到ALL_LINE 
         createLine(lines){
+            console.log('points',ALL_PT);
+            console.log('lines',lines)
             lines instanceof Array 
             && lines.map((item,index) => {
                 const pts = [];
@@ -433,12 +437,12 @@ export default {
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
                     return false;
                 }
-                styleOptions.strokeColor =  item.isBroken?'red':'green'; 
+                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal; 
                 ALL_LINE[item.edgeId] = {};
                 ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
                 map.addOverlay(ALL_LINE[item.edgeId].line);
                 const lineLabel = new BMap.Label(item.name,{
-                    offset:new BMap.Size(20,-10),
+                    offset:new BMap.Size(-10,-10),
                     position:new BMap.Point(
                         (ptA.lon+ptB.lon)/2,
                         (ptA.lat+ptB.lat)/2

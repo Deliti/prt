@@ -4,7 +4,7 @@ export const signin = data => fetch('post','/user/login',data)   // 注册&登�
 /**
  * 新建模拟事件
  */
-export const createEvent = () => fetch('post','/event/createNewEvent')
+export const createEvent = (eventName) => fetch('post','/event/createNewEvent',{eventName})
 
 /**
  * 模拟事件列表
