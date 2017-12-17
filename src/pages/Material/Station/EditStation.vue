@@ -104,9 +104,9 @@ export default {
     created(){
         this.$root.eventHub.$on('givePoint', this.setStartPoint);
         this.$root.eventHub.$on('staAndLine', this.setLineInfo);
-        this.bindEdit() 
     },
     mounted(){
+        this.bindEdit();
         this.$route.query.stop && this.getDetail();
     },
     watch: {
@@ -114,14 +114,13 @@ export default {
         '$route': 'getDetail'
     },
     methods:{
-        ...mapMutations(['SETSTAEDITID','DELSTATION','INSERTSTATION','SETEDITSTATION']),
         bindEdit(){
             const id = this.$route.query.stop;
             if(id){
-                this.SETSTAEDITID(id)
-                this.$root.eventHub.$emit('foucsIt','station');
-            }else{
-                this.SETEDITSTATION(null);
+                this.$root.eventHub.$emit('foucsIt',{
+                type:'station',
+                id
+            });
             }
         },
         goBack(){
@@ -189,23 +188,6 @@ export default {
                 eventTrackId:this.lineId
             }
             this.$root.eventHub.$emit('outputStation',params)
-        },
-        async reDraw(){
-            const params = {
-                eventStationId:this.$route.query.stop
-            }
-            const data = await stationDetail(params);
-            if(data.result!=0){
-                this.$message({
-                    message: data,
-                    type: 'warning',
-                    duration: 2000
-                })
-                return false;
-            }
-            const detail = data.detail;
-            this.station.edit.overlay && this.DELSTATION();
-            this.$root.eventHub.$emit('insertStation',detail[0])
         },
         async insertStation(){ // 确定插入站台
             const checkValid = this.checkInput();

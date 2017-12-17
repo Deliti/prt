@@ -12,7 +12,7 @@
                 </div>
             </div>  
             <div class="left ml60" v-if="inMap">
-                <div class="func f_white" @click="changeType()">
+                <div class="func f_white" @click.prevent="changeType()">
                     <span :class="mapFlag?'active':''">模拟状态</span>
                     /
                     <span :class="mapFlag?'':'active'">编辑状态</span>
@@ -83,8 +83,8 @@ export default {
         changeType(){
             this.SETMAPFLAG();
             this.mapFlag?this.linkArea('handle'):this.linkArea('material');
-            this.$root.eventHub.$emit('resetMap');
-            this.CHANGERUNSTATUS(0)
+            // this.$root.eventHub.$emit('resetMap');
+            this.$emit('resetMap')
         },
         linkArea(path){
             router.push(`/simulator/${this.$route.params.id}/${path}`)

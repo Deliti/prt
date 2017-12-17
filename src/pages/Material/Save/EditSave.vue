@@ -116,10 +116,10 @@ export default {
         bindEdit(){
             const id = this.$route.query.save;
             if(id){
-                this.SETSAVEEDITID(id);
-                this.$root.eventHub.$emit('foucsIt','save');
-            }else{
-                this.SETEDITSAVE(null);
+                this.$root.eventHub.$emit('foucsIt',{
+                    type:'save',
+                    id
+                });
             }
         },
         goBack(){

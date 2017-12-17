@@ -1,8 +1,8 @@
 <template>
   <div class="main-container">
-      <nav-div></nav-div>
+      <nav-div @resetMap="resetMap"></nav-div>
       <div class="main">
-        <map-div class="map"></map-div>
+        <map-div class="map" ref="map"></map-div>
         <aside class="right handle-area gray_3">
             <router-view class="child"></router-view>
         </aside>
@@ -31,6 +31,10 @@ export default {
     methods:{
         sendMsg(){
             return '您确定离开此页面吗'
+        },
+        resetMap(){
+            console.log(this.$refs.map)
+            this.$refs.map.resetMap();
         }
     }
 }

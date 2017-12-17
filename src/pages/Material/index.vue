@@ -82,7 +82,7 @@ export default {
             background: url('img/icon-2.png') center center no-repeat;
             background-size: 55px 50px;
             @media (min-width:@screen-lg) {
-                background-size: 80px 80px;
+                background-size: 70px 70px;
             }
         }
         .icon-3{

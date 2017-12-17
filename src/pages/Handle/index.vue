@@ -7,18 +7,18 @@
             <ul>
                 <li class="square text"
                     @click="startAndPause"
-                    :class="runStatus == 0 || runStatus == 2?'start-icon':'pause-icon'" 
+                    :class="runStatus == 0 || runStatus == 2?(hasCar?'start-icon':'start-hide'):'pause-icon'" 
                     >
                     {{runText}}
                 </li>
-                <li class="square stop-icon text"
+                <li class="square text"
                     @click="stopRun"
-
+                    :class="hasCar && runStatus != 0?'stop-icon':'stop-hide'"
                     >
                     停止
                 </li>
-                <li class="square passenger-icon text"
-                    :class="hasCar?'red':''"
+                <li class="square text"
+                    :class="hasCar?'passenger-hide':'passenger-icon'"
                     @click="autoCreate">
                     系统生成乘客
                 </li>
@@ -86,7 +86,8 @@ export default {
             }
         },
         stopRun(){
-            if(!this.checkIsRun()){
+            console.log()
+            if(!this.checkIsRun() || this.runStatus == 0){
                 return false;
             }
             this.CHANGERUNSTATUS(3);
@@ -183,6 +184,10 @@ export default {
             background:url('./run.png') no-repeat center center;
             background-size: 50px 50px;
         }
+        .start-hide{
+            background:url('./start_hide.png') no-repeat center center;
+            background-size: 50px 50px;  
+        }
         .pause-icon{
             background:url('./pause.png') no-repeat center center;
             background-size: 50px 50px; 
@@ -191,9 +196,17 @@ export default {
             background: url('./stop.png') no-repeat center center;
             background-size: 50px 50px;
         }
+        .stop-hide{
+            background: url('./stop_hide.png') no-repeat center center;
+            background-size: 50px 50px; 
+        }
         .passenger-icon{
             background: url('./passenger.png') no-repeat center center;
             background-size: 50px 50px;
+        }
+        .passenger-hide{
+            background: url('./passenger_hide.png') no-repeat center center;
+            background-size: 50px 50px;  
         }
         .reset-icon{
             background: url('./reset.png') no-repeat center center;
