@@ -125,6 +125,7 @@ export default {
         this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
         // this.$root.eventHub.$on('outputLine',this.outLine);        // 生成轨迹
         // this.$root.eventHub.$on('insertLine',this.importLine);     // 插入和更新的时候地图更新
+        this.$root.eventHub.$on('updateTrack',this.updateTrack); 
         this.$root.eventHub.$on('deleteEdge',this.deleteEdge); // 删除轨道
         this.$root.eventHub.$on('deleteStation',this.deleteStation); // 删除轨道
         
@@ -435,10 +436,10 @@ export default {
                 const ptB = ALL_PT[item.dst];
                 const BPt = new BMap.Point(ptB.lon,ptB.lat);
                 pts.push(BPt);
+                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal;
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
                     return false;
                 }
-                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal; 
                 ALL_LINE[item.edgeId] = {};
                 ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
                 map.addOverlay(ALL_LINE[item.edgeId].line);
@@ -464,6 +465,10 @@ export default {
                     router.push(`editLine?track=${item.edgeId}`);
                 })
             })
+        },
+        updateTrack(opts){
+            const strokeColor = opts.isBroken == '1'?broken:normal;
+            ALL_LINE[opts.edgeId].line.setStrokeColor(strokeColor);
         },
         // 拖拽轨道显示虚线
         drawDash(e,self){
