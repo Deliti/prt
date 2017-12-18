@@ -10,8 +10,8 @@
                 <dd class="left form_key">{{base[item].name}}</dd>
                 <dt class="right form_val">
                     <input type="text" 
-                        :disabled="mapFlag?item != 'speed':false" 
-                        :class="mapFlag && item != 'speed'?'disabled':''" 
+                        :disabled="item != 'speed'?true:false" 
+                        :class="item != 'speed'?'disabled':''" 
                         v-model="base[item].val">
                 </dt>
             </dl>

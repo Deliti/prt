@@ -86,7 +86,6 @@ export default {
             }
         },
         stopRun(){
-            console.log()
             if(!this.checkIsRun() || this.runStatus == 0){
                 return false;
             }

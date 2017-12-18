@@ -229,13 +229,14 @@ export default {
                 const addData = await addStation(params);
                 if(addData.result != 0){
                     this.$message({
-                        message: 'addData',
+                        message: addData,
                         type: 'warning',
                         duration: 2000
                     })
                     return false;
                 }
                 const {id,vertexId,name} = addData.detail;
+                console.log('id',id)
                 this.$root.eventHub.$emit('insertStation',{id,vertexId,name})
                 this.$message({
                     message: '新建站台成功',

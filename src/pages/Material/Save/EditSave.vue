@@ -212,6 +212,10 @@ export default {
             this.$root.eventHub.$emit('insertStorage',detail[0])
         },
         async insertSave(){ // 确定插入存储设施
+            const checkValid = this.checkInput();
+            console.log('check',checkValid)
+            if(!checkValid)
+                return false;
             const baseData = this.base;
             const params = {
                 longitude: this.position.lon,
@@ -295,9 +299,9 @@ export default {
                 return false;
             }
             for(let i in this.base){ 
-                const val = this.base[i];
-                if(val.test != undefined){
-                    let { test,val,name } = val;
+                const value = this.base[i];
+                if(value.test != undefined){
+                    const { test,val,name } = value;
                     test in validExp?
                     (validExp[test](val)?null:message = `请填写正确的${name}`):null
                     if(message){

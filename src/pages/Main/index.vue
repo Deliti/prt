@@ -20,7 +20,7 @@ import {mapState,mapMutations} from 'vuex'
 import {trackColor} from '@/config/env'
 import {getParam,transRes,_bind} from '@/config/mUtils'
 import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.getLine'
-import savepng from '@/assets/save.png'
+import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
 import { getMaterial,editStorage,addTrack } from '@/service/getData'
@@ -149,6 +149,7 @@ export default {
         this.SETMAPFLAG(false);
         this.CHANGERUNSTATUS(0); 
         this.clearAll(); 
+        this.offAll();
         this.bmap.clearOverlays();
     },
     methods:{
@@ -171,6 +172,25 @@ export default {
             ALL_STORAGE = {};
             carList = {};  // 所有车辆数组
             carMarkers = []; // 车辆最初carMarker
+        },
+        offAll(){
+            this.$root.eventHub.$off('resetMap',this.resetMap);
+            this.$root.eventHub.$off('foucsIt',this.getFoucs);
+
+            this.$root.eventHub.$off('clickPoint',this.setAllowPoint);  // 开启选点模式
+            this.$root.eventHub.$off('openDrawer',this.openDrawer); // 开启绘制
+            this.$root.eventHub.$off('updateTrack',this.updateTrack); 
+            this.$root.eventHub.$off('deleteEdge',this.deleteEdge); // 删除轨道
+            this.$root.eventHub.$off('deleteStation',this.deleteStation); // 删除轨道
+
+            this.$root.eventHub.$off('bindMapObj',this.bindMapObj);        // 绑定这条线
+            this.$root.eventHub.$off('outputStation',this.outputStation);        // 生成站台
+            this.$root.eventHub.$off('insertStation',this.importStation);     // 插入和更新的时候地图更新
+            this.$root.eventHub.$off('outputStorage',this.outputStorage);        // 生成站台
+            this.$root.eventHub.$off('insertStorage',this.importStorage);     // 插入和更新的时候地图更新
+
+            this.$root.eventHub.$off('createCarList',this.createCarList);
+            this.$root.eventHub.$off('orderCar',this.orderCar); 
         },
         resetMap(){
             Object.values(carList).map(car => {
@@ -826,6 +846,8 @@ export default {
                 autoView: false,//自动调整路线视野
                 enableRotation: true,//覆盖物随路线走向
                 callback:() => {
+                    console.log('arriveNum',this.arriveNum)
+                    console.log('carNum',this.carNum)
                    this.arriveNum ++;
                    if(this.arriveNum == this.carNum){
                        this.CHANGERUNSTATUS(0);
@@ -846,6 +868,7 @@ export default {
          * 
          */
         orderCar(order){
+            console.log('order',order)
             switch(order){
                 case 0:
                     carMarkers.map(item => {
@@ -868,7 +891,9 @@ export default {
                     break;
                 case 3:
                     Object.values(carList).map(car => {
-                        car.stop();
+                        if(!car._fromStop){
+                            car.stop();
+                        }
                     })
                     this.CHANGERUNSTATUS(0);
                     this.SETHASCAR(false);
