@@ -98,12 +98,12 @@ export default {
             .content{
                 display: flex;
                 line-height: 16px;
-                font-size: 14px;
+                font-size: 12px;
                 align-items:center;
                 text-align: center;
                 @media (min-width:@screen-lg) {
                     height: 150px;
-                    font-size: 18px;
+                    font-size: 16px;
                     line-height: 20px;
                 }
             }

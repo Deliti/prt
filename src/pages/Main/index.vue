@@ -227,6 +227,9 @@ export default {
                 callback:this.drawLine
             });  
             drawingManager._setDrawingMode('polyline');
+            this.bmap.addEventListener('rightdblclick',function(){
+                console.log('hhah')
+            })
         },
         async fetchAllData(){  // 最开始获取所有数据
             if(this.isHttp)

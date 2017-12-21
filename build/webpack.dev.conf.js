@@ -1,9 +1,11 @@
+var path = require('path')
 var utils = require('./utils')
 var webpack = require('webpack')
 var config = require('../config')
 var merge = require('webpack-merge')
 var baseWebpackConfig = require('./webpack.base.conf')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
+var CopyWebpackPlugin = require('copy-webpack-plugin')
 var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 // add hot-reload related code to entry chunks
@@ -31,6 +33,25 @@ module.exports = merge(baseWebpackConfig, {
       favicon:'./src/assets/favicon.ico',
       inject: true
     }),
-    new FriendlyErrorsPlugin()
+    new FriendlyErrorsPlugin(),
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, '../static'),
+        to: config.build.assetsSubDirectory,
+        ignore: ['.*']
+      },
+      {
+        from: path.resolve(__dirname, "../src/common/js/lib/cure.js"),
+        to: './static/js/cure.js'
+      },
+      {
+        from: path.resolve(__dirname, "../src/common/js/lib/LuShu_min.js"),
+        to: './static/js/Lushu_min.js'
+      },
+      {
+        from: path.resolve(__dirname, "../src/common/js/lib/drawing.js"),
+        to: './static/js/drawing.js' 
+      }
+    ])
   ]
 })

@@ -1066,7 +1066,7 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
                 isBinded = true;
                 mask.enableEdgeMove();
                 mask.addEventListener('mousemove', mousemoveAction);
-                mask.addEventListener('dblclick', dblclickAction);
+                mask.addEventListener('rightdblclick', dblclickAction);
             }
         }
 
@@ -1086,7 +1086,7 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
             mask.disableEdgeMove();
             mask.removeEventListener('mousedown',startAction);
             mask.removeEventListener('mousemove', mousemoveAction);
-            mask.removeEventListener('dblclick', dblclickAction);
+            mask.removeEventListener('rightdblclick', dblclickAction);
             //console.log(me.controlButton);
             if(me.controlButton == "right"){
                 points.push(e.point);
@@ -1372,7 +1372,7 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
         /**
          * 将事件都遮罩层的事件都绑定到domEvent来处理
          */
-        var events = ['click', 'mousedown', 'mousemove', 'mouseup', 'dblclick'],
+        var events = ['click', 'mousedown', 'mousemove', 'mouseup', 'rightdblclick'],
             index = events.length;
         while (index--) {
             baidu.on(container, events[index], domEvent);
