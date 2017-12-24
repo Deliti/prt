@@ -491,7 +491,7 @@ export default {
         },
         updateTrack(opts){
             const strokeColor = opts.isBroken == '1'?broken:normal;
-            ALL_LINE[opts.edgeId].line.setStrokeColor(strokeColor);
+            ALL_LINE[opts.id].line.setStrokeColor(strokeColor);
         },
         // 拖拽轨道显示虚线
         drawDash(e,self){
