@@ -24,6 +24,7 @@ import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
 import { getMaterial,editStorage,addTrack } from '@/service/getData'
+import Prt from 'common/js/lib/Ls'
 
 
 let carList = {};  // 所有车辆数组
@@ -73,6 +74,7 @@ const storageOptions = {
 let ALL_PT = {};  // 全局维护的所有的点
 let ALL_MARKER = {}; // 全局维护的所有点的实例
 let ALL_LINE = {};  // 全局维护的轨道实例
+let runTimer = null;  // 全局运行定时器
 // line 线
 // label 标签
 let ALL_STATION = {}; // 全局维护的站台实例
@@ -137,6 +139,7 @@ export default {
         
         this.$root.eventHub.$on('createCarList',this.createCarList);
         this.$root.eventHub.$on('orderCar',this.orderCar);
+        this.$root.eventHub.$on('setCoe',this.setCoe);
     },
     mounted(){
         this.SETMAPFLAG(false);
@@ -191,6 +194,7 @@ export default {
 
             this.$root.eventHub.$off('createCarList',this.createCarList);
             this.$root.eventHub.$off('orderCar',this.orderCar); 
+            this.$root.eventHub.$off('setCoe',this.setCoe);
         },
         resetMap(){
             Object.values(carList).map(car => {
@@ -799,12 +803,12 @@ export default {
                 let stPosition = ALL_STATION[startStaId].getPosition();
                 const startName = ALL_STATION[startStaId].name; 
                 const endName = ALL_STATION[endStaId].name;
-                let marker = new BMap.Marker(stPosition,{
-                    icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})
-                });
-                this.carNum++;
-                this.bmap.addOverlay(marker);
-                carMarkers.push(marker);
+                // let marker = new BMap.Marker(stPosition,{
+                //     icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})
+                // });
+                // this.carNum++;
+                // this.bmap.addOverlay(marker);
+                // carMarkers.push(marker);
                 if(this.mapFlag == 1){
                     console.log('创建个小车');
                     const opts = [];
@@ -841,7 +845,7 @@ export default {
          * }]
          */
         createCar(opts){
-            const lushu = new BMapLib.LuShu(this.bmap, opts.path, {
+             const PrtCar = new Prt(this.bmap, opts.path, {
                 landmarkPois:[],
                 defaultContent: `起始站${opts.startName} 到 终点站${opts.endName}`,//覆盖物内容，这个填上面的特殊点文字才会显示
                 // speed: 600,//路书速度
@@ -865,7 +869,33 @@ export default {
                    } 
                 }
             });
-            return lushu;
+            return PrtCar;
+
+            // const lushu = new BMapLib.LuShu(this.bmap, opts.path, {
+            //     landmarkPois:[],
+            //     defaultContent: `起始站${opts.startName} 到 终点站${opts.endName}`,//覆盖物内容，这个填上面的特殊点文字才会显示
+            //     // speed: 600,//路书速度
+            //     icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)}),//覆盖物图标，默认是百度的红色地点标注
+            //     autoView: false,//自动调整路线视野
+            //     enableRotation: true,//覆盖物随路线走向
+            //     callback:() => {
+            //         console.log('arriveNum',this.arriveNum)
+            //         console.log('carNum',this.carNum)
+            //        this.arriveNum ++;
+            //        if(this.arriveNum == this.carNum){
+            //            this.CHANGERUNSTATUS(0);
+            //            this.SETHASCAR(false); 
+            //            this.arriveNum = 0;
+            //            this.carNum = 0;
+            //         //    this.$message({
+            //         //         message:`模拟已结束`,
+            //         //         type: 'success',
+            //         //         duration: 2000 
+            //         //    })
+            //        } 
+            //     }
+            // });
+            // return lushu;
         },
         /**@argument
          * 
@@ -874,13 +904,32 @@ export default {
             console.log('order',order)
             switch(order){
                 case 0:
-                    carMarkers.map(item => {
-                        this.bmap.removeOverlay(item)
-                    })
-                    carMarkers = [];
                     Object.values(carList).map(car => {
-                        car.start();
+                        car.move();
                     })
+                    runTimer = setInterval(() => {
+                        let arriveNum = 0;
+                        Object.values(carList).map(car => {
+                            if(car._fromStop)
+                                arriveNum++; 
+                            car.move();
+                        })
+                        if(arriveNum == Object.keys(carList).length){
+                            clearInterval(runTimer);
+                            runTimer = null;
+                            this.CHANGERUNSTATUS(0);
+                            this.SETHASCAR(false); 
+                            this.arriveNum = 0;
+                            this.carNum = 0;
+                            this.$message({
+                                message:`模拟已结束`,
+                                type: 'success',
+                                duration: 2000 
+                            })
+                        }
+                        
+                    },50)
+                    
                     break;
                 case 1:
                     Object.values(carList).map(car => {
@@ -889,15 +938,17 @@ export default {
                     break;
                 case 2:
                     Object.values(carList).map(car => {
-                        car._againMove();
+                        car.again();
                     })
                     break;
                 case 3:
-                    Object.values(carList).map(car => {
-                        if(!car._fromStop){
-                            car.stop();
-                        }
-                    })
+                    clearInterval(runTimer);
+                    runTimer = null;
+                    // Object.values(carList).map(car => {
+                    //     if(!car._fromStop){
+                    //         car.stop();
+                    //     }
+                    // })
                     this.CHANGERUNSTATUS(0);
                     this.SETHASCAR(false);
                     this.arriveNum = 0;
@@ -906,6 +957,11 @@ export default {
                 default:
                     break;
             }
+        },
+        setCoe(n){
+            Object.values(carList).map(car => {
+                car.setCoe(n);
+            })
         }
     }
 }
@@ -923,7 +979,7 @@ export default {
     height: 100%;
 }
 .shade{
-    position: absolute;
+    position: fixed;
     left: 0;top:0;
     z-index: 9999;
     width: 100%;

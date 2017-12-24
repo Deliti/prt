@@ -30,7 +30,7 @@ module.exports = {
     proxyTable: {
       '/api':{
             // target:'http://58.215.50.61:19080/saasapi/saasapi',
-            target:'http://101.132.98.201:8087',
+            target:'http://106.15.93.184:9794',
             changeOrigin:true,
             pathRewrite: {
               '^/api': ''

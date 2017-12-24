@@ -26,7 +26,7 @@ if (process.env.NODE_ENV == 'development') {
 
 }else{
 	basePath = '';
-	baseUrl = 'http://101.132.98.201:8087';
+	baseUrl = 'http://106.15.93.184:9794';
 }
 
 export {

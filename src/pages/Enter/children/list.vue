@@ -15,6 +15,16 @@
                 </p>
             </div>
         </li>
+        <li class="item number">
+            <div class="item-top">
+                序号
+            </div>
+            <div class="content">
+                <p>
+                  {{num}}  
+                </p>
+            </div>
+        </li>
         <li v-show="showDel" class="del-box" @click.stop="delIt"></li>
     </ol>
 </template>
@@ -52,7 +62,8 @@ export default {
     props:{
         data:{
             
-        }
+        },
+        num:Number
     },
     methods:{
         show(){
@@ -78,10 +89,17 @@ export default {
     display: flex;
     width: 600px;
     margin: 30px auto;
+    padding-left: 100px;
     position: relative;
     @media (min-width:@screen-lg) {
         width: 750px;
         margin: 45px auto;
+    }
+    .number{
+        position: absolute;
+        left: 0;
+        top: 0; 
+        text-align: center;
     }
     .item{
         flex: 1;

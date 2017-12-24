@@ -11,6 +11,7 @@
                     :key="index"
                     @enter="enterPRT(item.eventId)"
                     :data="item"
+                    :num="index"
                     @delEvent="delEvent(item.eventId)"
                     ></listItem>
             </section>
@@ -152,7 +153,7 @@ export default {
     .content-wrap{
         padding-top: 40px;
         box-sizing: border-box;
-        width: 800px;
+        width: 100%;
         height: calc(~"100% - 100px");
         margin: 0 auto;
         overflow-y: auto;

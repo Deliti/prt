@@ -217,7 +217,7 @@ export default {
                 type: 'success',
                 duration: 2000
             })
-            this.$root.eventHub.$emit('updateTrack',editData.detail[0]); 
+            this.$root.eventHub.$emit('updateTrack',editData.detail); 
             console.log('更新轨道成功');   
             this.goBack();
         },
