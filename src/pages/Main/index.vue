@@ -23,7 +23,7 @@ import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.get
 import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
-import { getMaterial,editStorage,addTrack } from '@/service/getData'
+import { getMaterial,editStorage,addTrack,mergePt } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 
 
@@ -313,6 +313,7 @@ export default {
             drawingManager.open()
         },
         /**@augments e 地图事件
+         * @augments num 第几个点
          * @description 验证是否为第一个点
          */
         verifyAll(e,num){
@@ -336,6 +337,26 @@ export default {
                 return crossPt?crossPt:false;
             }
             return true;
+        },
+        verifyNear(vId){
+            const allPtArr = Object.keys(ALL_PT);
+            let crossPt = "";
+            let sourcePt = new BMap.Point(ALL_PT[vId].lon,ALL_PT[vId].lat);
+
+            if(allPtArr.length > 0){ 
+                for(let i in ALL_PT){
+                    if(i === vId)
+                        continue;
+                    let targetPt = new BMap.Point(ALL_PT[i].lon,ALL_PT[i].lat);
+                    const dis = this.bmap.getDistance(sourcePt,targetPt);
+                    if(dis < 5){
+                        crossPt = i;
+                        break;
+                    }
+                }
+                return crossPt?crossPt:false;
+            }
+            return true; 
         },
         /**@augments points 绘制完成点的合集
          * @augments overlay 绘制完成暂时的overlay
@@ -531,34 +552,9 @@ export default {
          *  拖拽轨道完成
          */
         async dragDashEnd(e,self){
-            const thisPt = ALL_PT[self.UDF.vertexId];
+            const vId = self.UDF.vertexId;
+            const thisPt = ALL_PT[vId];
             const neighbor = thisPt.neighbor;
-             // todo 拖动轨道改变了之后把数据传过去，返回更新点的值
-            for(var i=0;i<neighbor.length;i++){
-                var edgeId = neighbor[i].edgeId; 
-                const {
-                    line:beLine,
-                    label
-                } = ALL_LINE[edgeId];
-                var nextPtId = neighbor[i].vertexId;
-                var nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
-                label.setPosition(new BMap.Point(
-                    (ALL_PT[nextPtId].lon+e.point.lng)/2,
-                    (ALL_PT[nextPtId].lat+e.point.lat)/2, 
-                ))
-                var newPath = []; // 新实线
-                newPath.push(e.point,nextPt);
-                
-                beLine.setPath(newPath); 
-                // 将变化的线传过去
-                this.bmap.removeOverlay(beLine.dashLine); 
-                beLine.dashLine = null;
-                // 如果此点上有站台
-                if(thisPt.isStation){
-                    const stationId = thisPt.stationId;
-                    ALL_STATION[stationId].setPosition(e.point);
-                }
-            } 
             const vertexList = [
                 {
                     "vertexId":thisPt.vertexId,
@@ -584,6 +580,100 @@ export default {
             // 更新点的信息
             const newVInfo = trackData.detail.vertexList[0];
             Object.assign(thisPt,newVInfo);
+            this.updatePoint(vId);
+            // 新增更新完点的信息，再判断是否有合并的点
+            const nearPtId = this.verifyNear(vId);
+            this.isHttp = false;
+            if(typeof(nearPtId) === 'string'){
+                ALL_MARKER[vId].setIcon(new BMap.Icon(bigIcon, new BMap.Size(20,20)));
+                ALL_MARKER[nearPtId].setIcon(new BMap.Icon(bigIcon, new BMap.Size(20,20)));
+                this.$confirm("需要将这两个点合并吗？",'提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.hintMerge(vId,nearPtId);
+                }).catch(() => {
+                    ALL_MARKER[vId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))) 
+                    ALL_MARKER[nearPtId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))) 
+                })
+            }
+        },
+        // 更新点的信息
+        updatePoint(vId){
+            const thisPt = ALL_PT[vId];
+            const neighbor = thisPt.neighbor;
+            const herePoint = new BMap.Point(thisPt.lon,thisPt.lat); 
+            neighbor.map(item => {
+                const { 
+                    edgeId,
+                    vertexId:nextPtId
+                } = item;
+                const {
+                    line:beLine,
+                    label
+                } = ALL_LINE[edgeId];
+                const nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
+                label.setPosition(new BMap.Point(
+                    (ALL_PT[nextPtId].lon+ALL_PT[vId].lon)/2,
+                    (ALL_PT[nextPtId].lat+ALL_PT[vId].lat)/2, 
+                ))
+                const newPath = []; // 新实线
+                newPath.push(herePoint,nextPt);
+                beLine.setPath(newPath); 
+                 // 将变化的线传过去
+                this.bmap.removeOverlay(beLine.dashLine); 
+                beLine.dashLine = null;
+                // 如果此点上有站台
+                if(thisPt.isStation){
+                    const stationId = thisPt.stationId;
+                    ALL_STATION[stationId].setPosition(herePoint);
+                }
+            })
+        },
+        /**@augments dstPt A点
+         * @augments sourcePt B点
+         * @description 合并两个点
+         */
+        async hintMerge(dstPt,sourcePt){
+            const params = {
+                vertexIdDst:dstPt,   //目标点  保留的
+                vertexIdSource:sourcePt //来源点  会被删除
+            }
+            this.isHttp = true;
+            const data = await mergePt(params);
+            if(data.result != 0){
+                this.$message({
+                    message: trackData,
+                    type: 'warning',
+                    duration: 2000
+                })
+                return false;
+            } 
+            const {
+                vertexInfo:newVInfo,
+                abandonTrack
+            } = data.detail;
+            const {vertexId} = newVInfo[0];
+            let delPt = "";
+            // 更新点的信息
+            Object.assign(ALL_PT[vertexId],newVInfo[0]);
+            if(vertexId == dstPt){
+                delPt = sourcePt;
+            }else if(vertexId == sourcePt){
+                delPt = dstPt;
+            }
+            this.bmap.removeOverlay(ALL_MARKER[delPt]);
+            delete ALL_PT[delPt];
+            delete ALL_MARKER[delPt];
+            this.updatePoint(vertexId);
+            ALL_MARKER[vertexId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)));
+            abandonTrack.map(edgeId => {
+                this.deleteEdge({
+                    edgeId,
+                    vertexIds:[] 
+                })
+            }) 
             this.isHttp = false;
         },
         /**@augments
@@ -849,25 +939,7 @@ export default {
                 landmarkPois:[],
                 defaultContent: `起始站${opts.startName} 到 终点站${opts.endName}`,//覆盖物内容，这个填上面的特殊点文字才会显示
                 // speed: 600,//路书速度
-                icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)}),//覆盖物图标，默认是百度的红色地点标注
-                autoView: false,//自动调整路线视野
-                enableRotation: true,//覆盖物随路线走向
-                callback:() => {
-                    console.log('arriveNum',this.arriveNum)
-                    console.log('carNum',this.carNum)
-                   this.arriveNum ++;
-                   if(this.arriveNum == this.carNum){
-                       this.CHANGERUNSTATUS(0);
-                       this.SETHASCAR(false); 
-                       this.arriveNum = 0;
-                       this.carNum = 0;
-                    //    this.$message({
-                    //         message:`模拟已结束`,
-                    //         type: 'success',
-                    //         duration: 2000 
-                    //    })
-                   } 
-                }
+                icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})//覆盖物图标，默认是百度的红色地点标注
             });
             return PrtCar;
 
@@ -984,6 +1056,7 @@ export default {
     z-index: 9999;
     width: 100%;
     height: 100%;
+    user-select: none;
     p{
         position: absolute;
         width: 100%;

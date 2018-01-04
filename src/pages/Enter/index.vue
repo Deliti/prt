@@ -4,6 +4,9 @@
         <div class="welcome orange">
             {{welcomeWord}}
         </div>
+        <div class="add-event f_origin" 
+                @click="addEvent"
+        >添加场景</div>
         <div class="content-wrap">
             <section class="list-content">
                 <listItem 
@@ -15,9 +18,6 @@
                     @delEvent="delEvent(item.eventId)"
                     ></listItem>
             </section>
-            <div class="add-event f_origin" 
-                @click="addEvent"
-                >添加场景</div>
         </div> 
     </div>
 </template>
@@ -150,11 +150,26 @@ export default {
             padding-left: 150px;
         }
     }
+    .add-event{
+        cursor: pointer;
+        width: 145px;
+        height: 55px;
+        margin: 20px auto 0;
+        box-sizing: border-box;
+        line-height: 55px;
+        padding-left: 55px;
+        text-align: center;
+        background: url('add-icon.png') no-repeat 0 0;
+        background-size: 100% 100%;
+        @media (min-width:@screen-lg) {
+            // padding-top: 110px;
+        }
+    }
     .content-wrap{
-        padding-top: 40px;
+        // padding-top: 40px;
         box-sizing: border-box;
         width: 100%;
-        height: calc(~"100% - 100px");
+        height: calc(~"100% - 175px");
         margin: 0 auto;
         overflow-y: auto;
         @media (min-width:@screen-lg) {
@@ -162,21 +177,6 @@ export default {
         }
         .list-content{
             margin: 0 auto;
-        }
-        .add-event{
-            cursor: pointer;
-            position: absolute;
-            right: 100px;
-            top: 50%;
-            margin-top:-25px;
-            width: 100px;
-            padding-top: 50px;
-            text-align: center;
-            background: url('add.png') no-repeat center 0;
-            background-size: 50px 50px;
-            @media (min-width:@screen-lg) {
-                // padding-top: 110px;
-            }
         }
     }
 }

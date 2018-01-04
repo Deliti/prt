@@ -29,5 +29,6 @@ body{
   height: 100%;
   position: relative;
   margin:0 auto;
+  user-select: none;
 }
 </style>

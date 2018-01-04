@@ -27,6 +27,10 @@ export const getMaterial = data => fetch('post','/event/detail',data)
  */
 export const getTargetLngLat = data => fetch('post','/distance/getTrackEndLocation',data)
 
+/**
+ *  合并点
+ */
+export const mergePt = data => fetch('post','/track/mergeVertex',data);
 
 /**
  * 新建轨道

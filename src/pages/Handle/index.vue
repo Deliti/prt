@@ -28,6 +28,18 @@
                 </li>
             </ul>
         </section>
+         <div class="tips-title gray_2 f_origin">
+            高级功能键
+        </div>
+        <section class="aside-menu-box gray_3 f_origin">
+            <ul style="overflow:unset">
+                <CoeArea
+                    :option="coeOpts"
+                    :show="runStatus != 0 && hasCar"
+                    @change="setCOE"
+                ></CoeArea> 
+            </ul>
+        </section>
     </section>
 </template>
 
@@ -35,7 +47,26 @@
 import router from '@/router'
 import {mapState,mapMutations} from 'vuex'
 import { addRunCar } from '@/service/getData'
+import CoeArea from './children/CoeSpeed'
 export default {
+    data(){
+        return {
+            coeOpts:[
+                {
+                    k:1,
+                    text:'默认值'
+                },
+                {
+                    k:2,
+                    text:'二倍速'
+                },
+                {
+                    k:3,
+                    text:'三倍速'
+                }
+            ]
+        }
+    },
     computed:{
         ...mapState(['mapFlag','runStatus','hasCar']),
         runText(){
@@ -48,6 +79,9 @@ export default {
             }
             return ''
         }
+    },
+    components:{
+        CoeArea
     },
     methods:{
         ...mapMutations(['CHANGERUNSTATUS','SETHASCAR']),
@@ -130,6 +164,14 @@ export default {
             this.$root.eventHub.$emit('createCarList',data.detail);
             data.detail.length>0 && this.SETHASCAR(true);
         },
+        // 设置倍速
+        setCOE(n){
+            if(!this.checkIsRun(true)){
+                return false;
+            } 
+            console.log('hah')
+           this.$root.eventHub.$emit('setCoe',n); 
+        },
         reset(){
             if(!this.checkIsRun()){
                 return false;
@@ -180,35 +222,35 @@ export default {
             }
         }
         .start-icon{
-            background:url('./run.png') no-repeat center center;
+            background:url('./img/run.png') no-repeat center center;
             background-size: 50px 50px;
         }
         .start-hide{
-            background:url('./start_hide.png') no-repeat center center;
+            background:url('./img/start_hide.png') no-repeat center center;
             background-size: 50px 50px;  
         }
         .pause-icon{
-            background:url('./pause.png') no-repeat center center;
+            background:url('./img/pause.png') no-repeat center center;
             background-size: 50px 50px; 
         }
         .stop-icon{
-            background: url('./stop.png') no-repeat center center;
+            background: url('./img/stop.png') no-repeat center center;
             background-size: 50px 50px;
         }
         .stop-hide{
-            background: url('./stop_hide.png') no-repeat center center;
+            background: url('./img/stop_hide.png') no-repeat center center;
             background-size: 50px 50px; 
         }
         .passenger-icon{
-            background: url('./passenger.png') no-repeat center center;
+            background: url('./img/passenger.png') no-repeat center center;
             background-size: 50px 50px;
         }
         .passenger-hide{
-            background: url('./passenger_hide.png') no-repeat center center;
+            background: url('./img/passenger_hide.png') no-repeat center center;
             background-size: 50px 50px;  
         }
         .reset-icon{
-            background: url('./reset.png') no-repeat center center;
+            background: url('./img/reset.png') no-repeat center center;
             background-size: 50px 50px; 
         }
         .text{

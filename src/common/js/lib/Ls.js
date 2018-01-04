@@ -283,7 +283,6 @@ export default class Prt {
     
     move(){
         // 运行结束
-        console.log('notRun',this._fromPause || this._fromStop)
         if(this._fromPause || this._fromStop){
             return false;
         }
