@@ -10,6 +10,9 @@
                 <p v-if="item.key == 'image'">
                     <img :src="data[item.key]" alt="">
                 </p>
+                <p v-else-if="item.key == 'eventName'">
+                    {{substr(data[item.key])}}
+                </p>
                 <p v-else>
                     {{data[item.key]}}
                 </p>
@@ -30,6 +33,7 @@
 </template>
 
 <script>
+import {Tooltip,Button} from 'element-ui'
 export default {
     data(){
         return{
@@ -65,6 +69,10 @@ export default {
         },
         num:Number
     },
+    components:{
+        elTooltip:Tooltip,
+        elButton:Button
+    },
     methods:{
         show(){
             this.showDel = true;
@@ -77,6 +85,9 @@ export default {
         },
         delIt(){
             this.$emit('delEvent')
+        },
+        substr(string){
+            return string.length>5?`${string.substr(0,3)}..`:string;
         }
     }
 }
@@ -92,8 +103,9 @@ export default {
     padding-left: 100px;
     position: relative;
     @media (min-width:@screen-lg) {
-        width: 750px;
+        width: 900px;
         margin: 45px auto;
+        padding-left: 150px;
     }
     .number{
         position: absolute;
