@@ -12,7 +12,7 @@
                 <listItem 
                     v-for="(item,index) in eventList"
                     :key="index"
-                    @enter="enterPRT(item.eventId)"
+                    @enter="enterPRT(item.trackNum, item.eventId)"
                     :data="item"
                     :num="index"
                     @delEvent="delEvent(item.eventId)"
@@ -96,8 +96,12 @@ export default {
             }
             this.eventList = data.detail;
         },
-        enterPRT(id){
-            router.push(`/simulator/${id}`);
+        enterPRT(trackNum, id){
+            if(trackNum > 10){
+                router.push(`/bigsimulator/${id}`)
+            }else{
+                router.push(`/simulator/${id}`);
+            }
         },
         delEvent(eventId){
             this.$confirm('确定删除该场景?', '提示', {
