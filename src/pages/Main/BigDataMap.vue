@@ -26,7 +26,7 @@ import carIcon from './img/car.png';
 import { getMaterial,editStorage,addTrack,mergePt } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 
-
+let firstLoad = true;
 let carList = {};  // 所有车辆数组
 let carMarkers = []; // 车辆最初carMarker
 let drawingManager = null; // 绘图工具
@@ -120,7 +120,7 @@ export default {
 
     },
     created(){
-        this.$root.eventHub.$on('resetMap',this.resetMap);
+        this.$root.eventHub.$on('reloadMap',this.reLoadMap);
         this.$root.eventHub.$on('foucsIt',this.getFoucs);
 
         this.$root.eventHub.$on('clickPoint',this.setAllowPoint);  // 开启选点模式
@@ -177,7 +177,7 @@ export default {
             carMarkers = []; // 车辆最初carMarker
         },
         offAll(){
-            this.$root.eventHub.$off('resetMap',this.resetMap);
+            this.$root.eventHub.$off('reloadMap',this.reLoadMap);
             this.$root.eventHub.$off('foucsIt',this.getFoucs);
 
             this.$root.eventHub.$off('clickPoint',this.setAllowPoint);  // 开启选点模式
@@ -202,22 +202,34 @@ export default {
                 this.bmap.removeOverlay(car._marker);
                 this.bmap.removeOverlay(car._overlay);
             })
+            // 地图缩放事件，平移事件
+            this.bmap.removeEventListener('zoomend',this.reLoadMap);
+            this.bmap.removeEventListener('moveend',this.reLoadMap);
+            this.bmap.removeEventListener('mousemove',mouseEnterHandle);
+            this.bmap.removeEventListener('click',this.mapChoosePt); // 选点
             this.clearAll();
             this.bmap.clearOverlays();
             this.carNum = 0;
             this.arriveNum = 0;
             this.SETHASCAR(false);
             this.CHANGERUNSTATUS(0);
+            firstLoad = true;
             console.log('resetMap')
-            this.fetchAllData();
+            // this.fetchAllData();
         },
         setMapBase(){
             this.bmap.enableScrollWheelZoom();
             this.bmap.enableAutoResize();
+            // 最大缩放层级
+            this.bmap.setMinZoom(10);
         },
         initAction(){
             this.bmap.addEventListener('mousemove',mouseEnterHandle);
             this.bmap.addEventListener('click',this.mapChoosePt); // 选点
+            // 地图缩放事件，平移事件
+            this.bmap.addEventListener('zoomend',this.reLoadMap);
+            this.bmap.addEventListener('moveend',this.reLoadMap);
+
             drawingManager = new BMapLib.DrawingManager(this.bmap, {
                 isOpen: false, //是否开启绘制模式
                 enableDrawingTool: false, //是否显示工具栏
@@ -231,18 +243,44 @@ export default {
                 callback:this.drawLine
             });  
             drawingManager._setDrawingMode('polyline');
-            this.bmap.addEventListener('rightdblclick',function(){
-                console.log('hhah')
-            })
         },
-        async fetchAllData(){  // 最开始获取所有数据
+        /**@augments
+         *  大数据地图重新加载地图数据
+         */
+        reLoadMap(e){
+            if(firstLoad)
+                return false;
+            console.log('此处重置地图');
+            this.resetMap();
+            this.initAction();
+            const mapBounds = e.target.getBounds();
+            const {
+                lat:leftLat,
+                lng:leftLon
+            } = mapBounds.getSouthWest();
+            const {
+                lat:rightLat,
+                lng:rightLon
+            } = mapBounds.getNorthEast();
+            const tileLevel = e.target.getZoom();
+            console.log('leftLat',leftLat)
+            const params = {
+                leftLat,
+                leftLon,
+                rightLat,
+                rightLon,
+                tileLevel
+            }
+            this.fetchAllData(params);
+        },
+        async fetchAllData(params){  // 最开始获取所有数据
             if(this.isHttp)
                 return false;
             this.isHttp = true;
-            const params = {
+            Object.assign(params || {},{
                 eventId: this.$route.params.id,
                 materialType:0
-            }
+            })
             console.log('fetch')
             const allList = await getMaterial(params);
             
@@ -259,7 +297,6 @@ export default {
             }else{
                 this.createPoint(allList.detail[1].vertexList,true); 
             }
-            console.log('all',JSON.stringify(ALL_STATION))
             setTimeout(() => {
                 this.createLine(allList.detail[1].edgeList);
                 allList.detail[2].map((item) => {
@@ -280,6 +317,7 @@ export default {
                         this.importStorage({id,vertexId,name,position})
                     })
                     this.isHttp = false;
+                    firstLoad = false;
                 },500)
             },500)
             // this.bmap.setViewport(allPoints);
@@ -548,13 +586,13 @@ export default {
                 }
             }
         },
-        /**@augments
+        /**@augments e 百度地图事件
+         * @augments self marker
          *  拖拽轨道完成
          */
         async dragDashEnd(e,self){
             const vId = self.UDF.vertexId;
             const thisPt = ALL_PT[vId];
-            const neighbor = thisPt.neighbor;
             const vertexList = [
                 {
                     "vertexId":thisPt.vertexId,
