@@ -8,8 +8,8 @@
             <p>正在加载数据...</p>
         </div>
     </div>
-    
-    
+
+
 </template>
 
 <script>
@@ -23,7 +23,7 @@ import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.get
 import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
-import { getMaterial,editStorage,addTrack,mergePt } from '@/service/getData'
+import { getMaterial,getMaterialV2,editStorage,addTrack,mergePt } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 
 let firstLoad = true;
@@ -45,7 +45,7 @@ const styleOptions = {
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
-    strokeStyle: 'solid' //边线的样式，solid或dashed。  
+    strokeStyle: 'solid' //边线的样式，solid或dashed。
 }
 const dashOptions = {
     strokeColor:normal,    //边线颜色。
@@ -53,7 +53,7 @@ const dashOptions = {
     strokeWeight: 3,       //边线的宽度，以像素为单位。
     strokeOpacity: 0.8,	   //边线透明度，取值范围0 - 1。
     fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
-    strokeStyle: 'dashed' //边线的样式，solid或dashed。 
+    strokeStyle: 'dashed' //边线的样式，solid或dashed。
 }
 const labelStyle = {
     color : normal,
@@ -127,16 +127,16 @@ export default {
         this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
         // this.$root.eventHub.$on('outputLine',this.outLine);        // 生成轨迹
         // this.$root.eventHub.$on('insertLine',this.importLine);     // 插入和更新的时候地图更新
-        this.$root.eventHub.$on('updateTrack',this.updateTrack); 
+        this.$root.eventHub.$on('updateTrack',this.updateTrack);
         this.$root.eventHub.$on('deleteEdge',this.deleteEdge); // 删除轨道
         this.$root.eventHub.$on('deleteStation',this.deleteStation); // 删除轨道
-        
+
         this.$root.eventHub.$on('bindMapObj',this.bindMapObj);        // 绑定这条线
         this.$root.eventHub.$on('outputStation',this.outputStation);        // 生成站台
         this.$root.eventHub.$on('insertStation',this.importStation);     // 插入和更新的时候地图更新
         this.$root.eventHub.$on('outputStorage',this.outputStorage);        // 生成站台
         this.$root.eventHub.$on('insertStorage',this.importStorage);     // 插入和更新的时候地图更新
-        
+
         this.$root.eventHub.$on('createCarList',this.createCarList);
         this.$root.eventHub.$on('orderCar',this.orderCar);
         this.$root.eventHub.$on('setCoe',this.setCoe);
@@ -150,8 +150,8 @@ export default {
     },
     beforeDestroy(){
         this.SETMAPFLAG(false);
-        this.CHANGERUNSTATUS(0); 
-        this.clearAll(); 
+        this.CHANGERUNSTATUS(0);
+        this.clearAll();
         this.offAll();
         this.bmap.clearOverlays();
     },
@@ -171,7 +171,7 @@ export default {
             ALL_PT = {};  // 全局维护的所有的点
             ALL_MARKER = {}; // 全局维护的所有点的实例
             ALL_LINE = {};  // 全局维护的轨道实例
-            ALL_STATION = {}; 
+            ALL_STATION = {};
             ALL_STORAGE = {};
             carList = {};  // 所有车辆数组
             carMarkers = []; // 车辆最初carMarker
@@ -182,7 +182,7 @@ export default {
 
             this.$root.eventHub.$off('clickPoint',this.setAllowPoint);  // 开启选点模式
             this.$root.eventHub.$off('openDrawer',this.openDrawer); // 开启绘制
-            this.$root.eventHub.$off('updateTrack',this.updateTrack); 
+            this.$root.eventHub.$off('updateTrack',this.updateTrack);
             this.$root.eventHub.$off('deleteEdge',this.deleteEdge); // 删除轨道
             this.$root.eventHub.$off('deleteStation',this.deleteStation); // 删除轨道
 
@@ -193,7 +193,7 @@ export default {
             this.$root.eventHub.$off('insertStorage',this.importStorage);     // 插入和更新的时候地图更新
 
             this.$root.eventHub.$off('createCarList',this.createCarList);
-            this.$root.eventHub.$off('orderCar',this.orderCar); 
+            this.$root.eventHub.$off('orderCar',this.orderCar);
             this.$root.eventHub.$off('setCoe',this.setCoe);
         },
         resetMap(){
@@ -226,9 +226,7 @@ export default {
         initAction(){
             this.bmap.addEventListener('mousemove',mouseEnterHandle);
             this.bmap.addEventListener('click',this.mapChoosePt); // 选点
-            // 地图缩放事件，平移事件
-            this.bmap.addEventListener('zoomend',this.reLoadMap);
-            this.bmap.addEventListener('moveend',this.reLoadMap);
+
 
             drawingManager = new BMapLib.DrawingManager(this.bmap, {
                 isOpen: false, //是否开启绘制模式
@@ -241,7 +239,7 @@ export default {
                 verifyFirst:this.verifyAll,
                 verifyAll:this.verifyAll,
                 callback:this.drawLine
-            });  
+            });
             drawingManager._setDrawingMode('polyline');
         },
         /**@augments
@@ -282,8 +280,8 @@ export default {
                 materialType:0
             })
             console.log('fetch')
+            // const allList = await getMaterialV2(params);
             const allList = await getMaterial(params);
-            
             if(allList.result != 0){
                 this.$message({
                     type:'warning',
@@ -295,7 +293,7 @@ export default {
             if(this.mapFlag){
                 this.createPoint(allList.detail[1].vertexList,false);
             }else{
-                this.createPoint(allList.detail[1].vertexList,true); 
+                this.createPoint(allList.detail[1].vertexList,true);
             }
             setTimeout(() => {
                 this.createLine(allList.detail[1].edgeList);
@@ -318,9 +316,13 @@ export default {
                     })
                     this.isHttp = false;
                     firstLoad = false;
+
+                     // 地图缩放事件，平移事件
+                    this.bmap.addEventListener('zoomend',this.reLoadMap);
+                    this.bmap.addEventListener('moveend',this.reLoadMap);
                 },500)
             },500)
-            // this.bmap.setViewport(allPoints);
+            this.bmap.setViewport(allPoints);
         },
         getFoucs({type,id}){
             let points;
@@ -357,7 +359,7 @@ export default {
         verifyAll(e,num){
             const allPtArr = Object.keys(ALL_PT);
             let crossPt = "";
-            if(allPtArr.length > 0){ 
+            if(allPtArr.length > 0){
                 for(let i in ALL_PT){
                     let targetPt = new BMap.Point(ALL_PT[i].lon,ALL_PT[i].lat);
                     const dis = this.bmap.getDistance(e.point,targetPt);
@@ -381,7 +383,7 @@ export default {
             let crossPt = "";
             let sourcePt = new BMap.Point(ALL_PT[vId].lon,ALL_PT[vId].lat);
 
-            if(allPtArr.length > 0){ 
+            if(allPtArr.length > 0){
                 for(let i in ALL_PT){
                     if(i === vId)
                         continue;
@@ -394,7 +396,7 @@ export default {
                 }
                 return crossPt?crossPt:false;
             }
-            return true; 
+            return true;
         },
         /**@augments points 绘制完成点的合集
          * @augments overlay 绘制完成暂时的overlay
@@ -405,7 +407,7 @@ export default {
             const vertexList = [];
             const edgeList = [];
             points.map((item,index) => {
-                const vId = overlay.UDF[index]?overlay.UDF[index]:`temp_${index}`; 
+                const vId = overlay.UDF[index]?overlay.UDF[index]:`temp_${index}`;
                 const pointItem = {
                     vertexId:vId,
                     lon:item.lng,
@@ -419,8 +421,8 @@ export default {
                         edgeId:`edge_temp_${index}`,
                         src:vId,
                         dst:nxtId,
-                        inGraph:0 
-                    } 
+                        inGraph:0
+                    }
                     edgeList.push(edgeItem);
                 }
             })
@@ -471,7 +473,7 @@ export default {
                     continue;
                 }
                 if(ALL_MARKER.hasOwnProperty(item)){
-                    continue; 
+                    continue;
                 }
                 const marker = new BMap.Marker(mapPt,{
                     icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))
@@ -499,26 +501,26 @@ export default {
                     })
                     // 高亮
                     _bind(marker,'mouseover',function(e){
-                        this.setIcon(new BMap.Icon(bigIcon, new BMap.Size(20,20))) 
+                        this.setIcon(new BMap.Icon(bigIcon, new BMap.Size(20,20)))
                         // this.setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png'), new BMap.Size(20,20));
                     })
                     _bind(marker,'mouseout',function(e){
-                        this.setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))) 
+                        this.setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)))
                     })
                 },1000)
-            } 
+            }
             this.bmap.setViewport(resAll);
             resAll = null;
         },
-        // 根据后端返回的点保存到ALL_LINE 
+        // 根据后端返回的点保存到ALL_LINE
         createLine(lines){
-            lines instanceof Array 
+            lines instanceof Array
             && lines.map((item,index) => {
                 const pts = [];
                 const ptA = ALL_PT[item.src];
                 const APt = new BMap.Point(ptA.lon,ptA.lat);
                 pts.push(APt);
-                
+
                 const ptB = ALL_PT[item.dst];
                 const BPt = new BMap.Point(ptB.lon,ptB.lat);
                 pts.push(BPt);
@@ -527,6 +529,13 @@ export default {
                     return false;
                 }
                 ALL_LINE[item.edgeId] = {};
+                // if(mapFlag){
+                //     const style = Object.assign({},labelStyle)
+                //     lineLabel.setStyle(labelStyle);
+                // }else{
+
+                // }
+                // const newStyle = Object.assign({},styleOptions)
                 ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
                 map.addOverlay(ALL_LINE[item.edgeId].line);
                 const lineLabel = new BMap.Label(item.name,{
@@ -535,7 +544,8 @@ export default {
                         (ptA.lon+ptB.lon)/2,
                         (ptA.lat+ptB.lat)/2
                     )
-                })   
+                })
+
                 lineLabel.setStyle(labelStyle);
                 ALL_LINE[item.edgeId].label = lineLabel;
                 map.addOverlay(lineLabel);
@@ -561,18 +571,18 @@ export default {
             const thisPt = ALL_PT[self.UDF.vertexId];
             const neighbor = thisPt.neighbor;
             for(var i=0;i<neighbor.length;i++){
-                var edgeId = neighbor[i].edgeId; 
+                var edgeId = neighbor[i].edgeId;
                 var beLine = ALL_LINE[edgeId].line;
                 var dashTrack = []; // 新虚线
                 var nextPtId = neighbor[i].vertexId;
                 var nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
                 dashTrack.push(e.point,nextPt);
-                
+
                 if(beLine.dashLine instanceof BMap.Polyline){
                     beLine.dashLine.setPath(dashTrack);
                 }else{
                     beLine.dashLine = new BMap.Polyline(dashTrack,dashOptions);
-                    this.bmap.addOverlay(beLine.dashLine); 
+                    this.bmap.addOverlay(beLine.dashLine);
                 }
                 // 如果此点上有站台
                 if(thisPt.isStation){
@@ -632,8 +642,8 @@ export default {
                 }).then(() => {
                     this.hintMerge(vId,nearPtId);
                 }).catch(() => {
-                    ALL_MARKER[vId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))) 
-                    ALL_MARKER[nearPtId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))) 
+                    ALL_MARKER[vId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)))
+                    ALL_MARKER[nearPtId].setIcon(new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16)))
                 })
             }
         },
@@ -641,9 +651,9 @@ export default {
         updatePoint(vId){
             const thisPt = ALL_PT[vId];
             const neighbor = thisPt.neighbor;
-            const herePoint = new BMap.Point(thisPt.lon,thisPt.lat); 
+            const herePoint = new BMap.Point(thisPt.lon,thisPt.lat);
             neighbor.map(item => {
-                const { 
+                const {
                     edgeId,
                     vertexId:nextPtId
                 } = item;
@@ -654,13 +664,13 @@ export default {
                 const nextPt = new BMap.Point(ALL_PT[nextPtId].lon,ALL_PT[nextPtId].lat);
                 label.setPosition(new BMap.Point(
                     (ALL_PT[nextPtId].lon+ALL_PT[vId].lon)/2,
-                    (ALL_PT[nextPtId].lat+ALL_PT[vId].lat)/2, 
+                    (ALL_PT[nextPtId].lat+ALL_PT[vId].lat)/2,
                 ))
                 const newPath = []; // 新实线
                 newPath.push(herePoint,nextPt);
-                beLine.setPath(newPath); 
+                beLine.setPath(newPath);
                  // 将变化的线传过去
-                this.bmap.removeOverlay(beLine.dashLine); 
+                this.bmap.removeOverlay(beLine.dashLine);
                 beLine.dashLine = null;
                 // 如果此点上有站台
                 if(thisPt.isStation){
@@ -687,7 +697,7 @@ export default {
                     duration: 2000
                 })
                 return false;
-            } 
+            }
             const {
                 vertexInfo:newVInfo,
                 abandonTrack
@@ -709,9 +719,9 @@ export default {
             abandonTrack.map(edgeId => {
                 this.deleteEdge({
                     edgeId,
-                    vertexIds:[] 
+                    vertexIds:[]
                 })
-            }) 
+            })
             this.isHttp = false;
         },
         /**@augments
@@ -727,10 +737,10 @@ export default {
                 delete ALL_MARKER[item];
                 if(ALL_PT[item].isStation){
                     const stationId = ALL_PT[item].stationId;
-                    this.bmap.removeOverlay(stationId); 
+                    this.bmap.removeOverlay(stationId);
                     delete ALL_STATION[stationId];
                 }
-                delete ALL_PT[item]; 
+                delete ALL_PT[item];
             })
         },
         /**@augments
@@ -806,7 +816,7 @@ export default {
             this.bmap.removeOverlay(this.mPoint);
             const point = new BMap.Point(
                 position.lon,
-                position.lat    
+                position.lat
             )
             const basePoint = new BMap.Point(
                 ALL_PT[vertexId].lon,
@@ -825,8 +835,8 @@ export default {
             // 更新点的数据
             this.bmap.addOverlay(marker);
             if(!this.mapFlag){
-                marker.enableDragging(); 
-            }   
+                marker.enableDragging();
+            }
             this.bmap.addOverlay(dashLine);
             marker.setLabel(new BMap.Label(name,{
                 offset:new BMap.Size(30,0)
@@ -836,7 +846,7 @@ export default {
                 _bind(marker,'click',() => {
                     const nowStaPt = marker.getPosition();
                     this.bmap.centerAndZoom(nowStaPt,23);
-                    router.push(`editSave?save=${id}`) 
+                    router.push(`editSave?save=${id}`)
                 })
                 // 拖拽
                 _bind(marker,'dragging',function(e){
@@ -851,7 +861,7 @@ export default {
                     _self.sto_dragDashEnd(e,that);
                 });
             },1000)
-            
+
         },
         importStorage({id,vertexId,name,position}){
              if(!ALL_STORAGE[id]){
@@ -922,14 +932,14 @@ export default {
         createCarList(list){
             carMarkers = [];
             list instanceof Array && list.map(item => {
-                const { 
+                const {
                     eventVehicleId:vId,
                     startStationId:startStaId ,
                     endStationId:endStaId,
-                    path:pathInfo 
+                    path:pathInfo
                 } = item;
                 let stPosition = ALL_STATION[startStaId].getPosition();
-                const startName = ALL_STATION[startStaId].name; 
+                const startName = ALL_STATION[startStaId].name;
                 const endName = ALL_STATION[endStaId].name;
                 // let marker = new BMap.Marker(stPosition,{
                 //     icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})
@@ -994,21 +1004,21 @@ export default {
             //        this.arriveNum ++;
             //        if(this.arriveNum == this.carNum){
             //            this.CHANGERUNSTATUS(0);
-            //            this.SETHASCAR(false); 
+            //            this.SETHASCAR(false);
             //            this.arriveNum = 0;
             //            this.carNum = 0;
             //         //    this.$message({
             //         //         message:`模拟已结束`,
             //         //         type: 'success',
-            //         //         duration: 2000 
+            //         //         duration: 2000
             //         //    })
-            //        } 
+            //        }
             //     }
             // });
             // return lushu;
         },
         /**@argument
-         * 
+         *
          */
         orderCar(order){
             console.log('order',order)
@@ -1021,25 +1031,25 @@ export default {
                         let arriveNum = 0;
                         Object.values(carList).map(car => {
                             if(car._fromStop)
-                                arriveNum++; 
+                                arriveNum++;
                             car.move();
                         })
                         if(arriveNum == Object.keys(carList).length){
                             clearInterval(runTimer);
                             runTimer = null;
                             this.CHANGERUNSTATUS(0);
-                            this.SETHASCAR(false); 
+                            this.SETHASCAR(false);
                             this.arriveNum = 0;
                             this.carNum = 0;
                             this.$message({
                                 message:`模拟已结束`,
                                 type: 'success',
-                                duration: 2000 
+                                duration: 2000
                             })
                         }
-                        
+
                     },50)
-                    
+
                     break;
                 case 1:
                     Object.values(carList).map(car => {

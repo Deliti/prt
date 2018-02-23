@@ -22,6 +22,12 @@ export const delEvent = data => fetch('post','/event/delete',data)
  */
 export const getMaterial = data => fetch('post','/event/detail',data)
 
+
+/**
+ *  大数据素材list
+ */
+export const getMaterialV2 = data => fetch('post','/event/detailV2',data)
+
 /**
  * 后台根据参数算出终点
  */
@@ -65,7 +71,7 @@ export const importTrack = (id,data) => fetch('post',`/track/importTrack?eventId
 
 /**
  * 新建站台
- * @param {*} data 
+ * @param {*} data
  */
 export const addStation = data => fetch('post','/station/addStationDetail',data);
 
@@ -98,7 +104,7 @@ export const getStationId = data => fetch('post','/event/queryMaterialName',data
 
 /**
  * 新建存储设施
- * @param {*} error 
+ * @param {*} error
  */
 export const addStorage = data => fetch('post','/storage/addStorageDetail',data);
 
@@ -126,23 +132,23 @@ export const addRunCar = data => fetch('post','/event/run',data);
 
 
 
-export const showError = error => 
-{ 
-    switch(error.code) 
-    { 
-        case error.PERMISSION_DENIED: 
+export const showError = error =>
+{
+    switch(error.code)
+    {
+        case error.PERMISSION_DENIED:
             console.log("用户拒绝对获取地理位置的请求。" )
-            break; 
-        case error.POSITION_UNAVAILABLE: 
+            break;
+        case error.POSITION_UNAVAILABLE:
             console.log("位置信息是不可用的。" )
-            break; 
-        case error.TIMEOUT: 
+            break;
+        case error.TIMEOUT:
             console.log("请求用户地理位置超时。" )
-            break; 
-        case error.UNKNOWN_ERROR: 
+            break;
+        case error.UNKNOWN_ERROR:
             console.log("未知错误。" )
-            break; 
-    } 
+            break;
+    }
 }
 
 
