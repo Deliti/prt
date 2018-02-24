@@ -524,18 +524,16 @@ export default {
                 const ptB = ALL_PT[item.dst];
                 const BPt = new BMap.Point(ptB.lon,ptB.lat);
                 pts.push(BPt);
-                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal;
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
                     return false;
                 }
                 ALL_LINE[item.edgeId] = {};
-                // if(mapFlag){
-                //     const style = Object.assign({},labelStyle)
-                //     lineLabel.setStyle(labelStyle);
-                // }else{
-
-                // }
-                // const newStyle = Object.assign({},styleOptions)
+                if(mapFlag){
+                    Object.assign(styleOptions, {
+                      strokeColor:trackColor[item.trafficLevel]
+                    })
+                }
+                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal;
                 ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
                 map.addOverlay(ALL_LINE[item.edgeId].line);
                 const lineLabel = new BMap.Label(item.name,{
