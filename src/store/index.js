@@ -8,6 +8,7 @@ Vue.use(Vuex);
 const state = {
 	userInfo:{},
 	mapFlag:0, // 0 编辑 1 运行
+	bigData:false,
 	lineData:{
 		edit:{
 			flag:'', // add 新增 edit 编辑 show 展示

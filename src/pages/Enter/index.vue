@@ -24,7 +24,7 @@
 
 <script>
 import router from '@/router'
-import {mapState} from 'vuex'
+import {mapState,mapMutations} from 'vuex'
 import { getJosnStore } from '@/config/mUtils'
 import { createEvent,getEventList,delEvent } from '@/service/getData'
 import listItem from './children/list'
@@ -63,6 +63,7 @@ export default {
         listItem
     },
     methods:{
+        ...mapMutations(['SETBIGDATA']),
         addEvent(){
             this.$prompt('请输入名称', '提示', {
                 confirmButtonText: '确定',
@@ -98,8 +99,10 @@ export default {
         },
         enterPRT(trackNum, id){
             if(trackNum > 10){
+                localStorage.setItem('bigData',true);
                 router.push(`/bigsimulator/${id}`)
             }else{
+                localStorage.setItem('bigData',""); 
                 router.push(`/simulator/${id}`);
             }
         },

@@ -4,6 +4,9 @@ export default {
 	SETHASCAR(state,boo){
 		state.hasCar = boo
 	},
+	SETBIGDATA(state,boo){
+		state.bigData = boo
+	},
 	SETGEOLOCATION(state,geo){
 		state.latitude = geo.latitude;
 		state.longitude = geo.longitude;

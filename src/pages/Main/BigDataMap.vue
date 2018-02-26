@@ -27,6 +27,8 @@ import { getMaterial,getMaterialV2,editStorage,addTrack,mergePt } from '@/servic
 import Prt from 'common/js/lib/Ls'
 
 let firstLoad = true;
+let lastZoom;
+let oldFetchTime = new Date().getTime();
 let carList = {};  // 所有车辆数组
 let carMarkers = []; // 车辆最初carMarker
 let drawingManager = null; // 绘图工具
@@ -176,6 +178,28 @@ export default {
             carList = {};  // 所有车辆数组
             carMarkers = []; // 车辆最初carMarker
         },
+        bindAll(){
+            this.$root.eventHub.$on('reloadMap',this.reLoadMap);
+            this.$root.eventHub.$on('foucsIt',this.getFoucs);
+
+            this.$root.eventHub.$on('clickPoint',this.setAllowPoint);  // 开启选点模式
+            this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
+            // this.$root.eventHub.$on('outputLine',this.outLine);        // 生成轨迹
+            // this.$root.eventHub.$on('insertLine',this.importLine);     // 插入和更新的时候地图更新
+            this.$root.eventHub.$on('updateTrack',this.updateTrack);
+            this.$root.eventHub.$on('deleteEdge',this.deleteEdge); // 删除轨道
+            this.$root.eventHub.$on('deleteStation',this.deleteStation); // 删除轨道
+
+            this.$root.eventHub.$on('bindMapObj',this.bindMapObj);        // 绑定这条线
+            this.$root.eventHub.$on('outputStation',this.outputStation);        // 生成站台
+            this.$root.eventHub.$on('insertStation',this.importStation);     // 插入和更新的时候地图更新
+            this.$root.eventHub.$on('outputStorage',this.outputStorage);        // 生成站台
+            this.$root.eventHub.$on('insertStorage',this.importStorage);     // 插入和更新的时候地图更新
+
+            this.$root.eventHub.$on('createCarList',this.createCarList);
+            this.$root.eventHub.$on('orderCar',this.orderCar);
+            this.$root.eventHub.$on('setCoe',this.setCoe);
+        },
         offAll(){
             this.$root.eventHub.$off('reloadMap',this.reLoadMap);
             this.$root.eventHub.$off('foucsIt',this.getFoucs);
@@ -203,7 +227,7 @@ export default {
                 this.bmap.removeOverlay(car._overlay);
             })
             // 地图缩放事件，平移事件
-            this.bmap.removeEventListener('zoomend',this.reLoadMap);
+            this.bmap.removeEventListener('zoomend',this.zoomLoadMap);
             this.bmap.removeEventListener('moveend',this.reLoadMap);
             this.bmap.removeEventListener('mousemove',mouseEnterHandle);
             this.bmap.removeEventListener('click',this.mapChoosePt); // 选点
@@ -213,7 +237,6 @@ export default {
             this.arriveNum = 0;
             this.SETHASCAR(false);
             this.CHANGERUNSTATUS(0);
-            firstLoad = true;
             console.log('resetMap')
             // this.fetchAllData();
         },
@@ -221,7 +244,7 @@ export default {
             this.bmap.enableScrollWheelZoom();
             this.bmap.enableAutoResize();
             // 最大缩放层级
-            this.bmap.setMinZoom(10);
+            this.bmap.setMinZoom(14);
         },
         initAction(){
             this.bmap.addEventListener('mousemove',mouseEnterHandle);
@@ -242,16 +265,27 @@ export default {
             });
             drawingManager._setDrawingMode('polyline');
         },
+        zoomLoadMap(){
+            const nowZoom = this.bmap.getZoom();
+            const stepO = [14,15];
+            const stepT = [16,17];
+            const stepR = [18,19];
+            if((stepO.indexOf(lastZoom) != -1 && stepO.indexOf(nowZoom) != -1) ||(stepT.indexOf(lastZoom) != -1 && stepT.indexOf(nowZoom) != -1)||(stepR.indexOf(lastZoom) != -1 && stepR.indexOf(nowZoom) != -1)){
+                lastZoom = nowZoom;
+                return false;
+            }
+            lastZoom = nowZoom;
+            console.log('此处重置地图', this.bmap.getZoom());
+            this.reLoadMap();  
+        },
         /**@augments
          *  大数据地图重新加载地图数据
          */
         reLoadMap(e){
-            if(firstLoad)
-                return false;
-            console.log('此处重置地图');
+            console.log('what')
             this.resetMap();
             this.initAction();
-            const mapBounds = e.target.getBounds();
+            const mapBounds = this.bmap.getBounds();
             const {
                 lat:leftLat,
                 lng:leftLon
@@ -260,7 +294,7 @@ export default {
                 lat:rightLat,
                 lng:rightLon
             } = mapBounds.getNorthEast();
-            const tileLevel = e.target.getZoom();
+            const tileLevel = this.bmap.getZoom();
             console.log('leftLat',leftLat)
             const params = {
                 leftLat,
@@ -275,11 +309,12 @@ export default {
             if(this.isHttp)
                 return false;
             this.isHttp = true;
-            Object.assign(params || {},{
+            params = params || {};
+            Object.assign(params, {
                 eventId: this.$route.params.id,
                 materialType:0
             })
-            console.log('fetch')
+            console.log('fetch',params)
             // const allList = await getMaterialV2(params);
             const allList = await getMaterial(params);
             if(allList.result != 0){
@@ -290,6 +325,7 @@ export default {
                 })
                 return false;
             }
+            oldFetchTime = new Date().getTime();
             if(this.mapFlag){
                 this.createPoint(allList.detail[1].vertexList,false);
             }else{
@@ -318,11 +354,18 @@ export default {
                     firstLoad = false;
 
                      // 地图缩放事件，平移事件
-                    this.bmap.addEventListener('zoomend',this.reLoadMap);
+                    this.bmap.addEventListener('zoomend',this.zoomLoadMap);
                     this.bmap.addEventListener('moveend',this.reLoadMap);
-                },500)
-            },500)
-            this.bmap.setViewport(allPoints);
+                    this.mapFlag && setTimeout(() => {
+                        const newFetchTime = new Date().getTime();
+                        if(newFetchTime - oldFetchTime > 10000){
+                            this.reLoadMap();
+                        }else{
+                            console.log('notFetch')
+                        }
+                    },10000)
+                },300)
+            },0)
         },
         getFoucs({type,id}){
             let points;
@@ -509,7 +552,10 @@ export default {
                     })
                 },1000)
             }
-            this.bmap.setViewport(resAll);
+            if(firstLoad){
+                this.bmap.setViewport(resAll)
+                lastZoom = this.bmap.getZoom();
+            };
             resAll = null;
         },
         // 根据后端返回的点保存到ALL_LINE
@@ -528,7 +574,7 @@ export default {
                     return false;
                 }
                 ALL_LINE[item.edgeId] = {};
-                if(mapFlag){
+                if(this.mapFlag){
                     Object.assign(styleOptions, {
                       strokeColor:trackColor[item.trafficLevel]
                     })

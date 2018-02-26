@@ -34,7 +34,7 @@ export default {
         },
         resetMap(){
             console.log(this.$refs.map)
-            this.$refs.map.resetMap();
+            this.$refs.map.reLoadMap();
         }
     }
 }

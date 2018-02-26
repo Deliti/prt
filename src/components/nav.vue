@@ -58,7 +58,7 @@ export default {
         }
     },
     computed:{
-        ...mapState(['mapFlag']),
+        ...mapState(['mapFlag','bigData']),
         editText(){
             return this.mapFlag?'模拟状态':'编辑状态'
         },
@@ -84,10 +84,16 @@ export default {
             this.SETMAPFLAG();
             this.mapFlag?this.linkArea('handle'):this.linkArea('material');
             // this.$root.eventHub.$emit('resetMap');
-            this.$emit('resetMap')
+            
         },
         linkArea(path){
-            router.push(`/simulator/${this.$route.params.id}/${path}`)
+            const bigData = localStorage.getItem('bigData');
+            if(bigData){
+                router.push(`/bigsimulator/${this.$route.params.id}/${path}`)
+            }else{
+               router.push(`/simulator/${this.$route.params.id}/${path}`);
+            }
+            this.$emit('resetMap'); 
         }
     }
 }

@@ -282,7 +282,6 @@ export default {
                     this.isHttp = false;
                 },500)
             },500)
-            // this.bmap.setViewport(allPoints);
         },
         getFoucs({type,id}){
             let points;
