@@ -44,6 +44,11 @@ export const mergePt = data => fetch('post','/track/mergeVertex',data);
 export const addTrack = data => fetch('post','/track/addTrack',data);
 
 /**
+ * 新建轨道大数据
+ */
+export const addTrackV2 = data => fetch('post','/track/addTrackV2',data);
+
+/**
  * 编辑轨道
  */
 export const updateTrack = data => fetch('post','/track/update',data);

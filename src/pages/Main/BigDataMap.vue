@@ -23,7 +23,7 @@ import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.get
 import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
-import { getMaterial,getMaterialV2,editStorage,addTrack,mergePt } from '@/service/getData'
+import { getMaterial,getMaterialV2,editStorage,addTrack,addTrackV2,mergePt } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 
 let firstLoad = true;
@@ -167,7 +167,25 @@ export default {
             bmap.centerAndZoom(new this.BMap.Point(116.404, 39.915), 18);
             this.setMapBase();
             this.initAction();
-            this.fetchAllData();
+            const mapBounds = this.bmap.getBounds();
+            const {
+                lat:leftLat,
+                lng:leftLon
+            } = mapBounds.getSouthWest();
+            const {
+                lat:rightLat,
+                lng:rightLon
+            } = mapBounds.getNorthEast();
+            const tileLevel = this.bmap.getZoom();
+            console.log('leftLat',leftLat)
+            const params = {
+                leftLat,
+                leftLon,
+                rightLat,
+                rightLon,
+                tileLevel
+            }
+            this.fetchAllData(params);
         },
         clearAll(){
             ALL_PT = {};  // 全局维护的所有的点
@@ -326,6 +344,24 @@ export default {
                 return false;
             }
             oldFetchTime = new Date().getTime();
+            if(allList.detail[1] == null){
+                this.isHttp = false;
+                firstLoad = false;
+
+                    // 地图缩放事件，平移事件
+                this.bmap.addEventListener('zoomend',this.zoomLoadMap);
+                this.bmap.addEventListener('moveend',this.reLoadMap);
+                this.mapFlag && setTimeout(() => {
+                    const newFetchTime = new Date().getTime();
+                    if(newFetchTime - oldFetchTime > 10000){
+                        this.reLoadMap();
+                    }else{
+                        console.log('notFetch')
+                    }
+                },10000)
+                return false;
+            }
+    
             if(this.mapFlag){
                 this.createPoint(allList.detail[1].vertexList,false);
             }else{
@@ -455,6 +491,7 @@ export default {
                     vertexId:vId,
                     lon:item.lng,
                     lat:item.lat,
+                    isStation:false,
                     inGraph:overlay.UDF[index]?1:0
                 }
                 vertexList.push(pointItem);
@@ -475,7 +512,8 @@ export default {
                 vertexList,
                 edgeList
             }
-            const trackData = await addTrack(params);
+            const trackData = await addTrackV2(params);
+            // const trackData = await addTrack(params);
             if(trackData.result != 0){
                 this.$message({
                     message: trackData,
@@ -647,11 +685,14 @@ export default {
         async dragDashEnd(e,self){
             const vId = self.UDF.vertexId;
             const thisPt = ALL_PT[vId];
+            const neighbor = thisPt.neighbor;
             const vertexList = [
                 {
                     "vertexId":thisPt.vertexId,
                     "lat":e.point.lat,
                     "lon":e.point.lng,
+                    "isStation": false,
+                    neighbor,
                     "inGraph":"1" //是否被添加到图中 1是 0否（新建的点为0 修改是应为1）
                 }
             ]
@@ -660,7 +701,8 @@ export default {
                 vertexList
             }
             this.isHttp = true;
-            const trackData = await addTrack(params);
+            const trackData = await addTrackV2(params);
+            // const trackData = await addTrack(params);
             if(trackData.result != 0){
                 this.$message({
                     message: trackData,
