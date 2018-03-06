@@ -23,7 +23,7 @@ import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.get
 import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
-import { getMaterial,getMaterialV2,editStorage,addTrack,addTrackV2,mergePt } from '@/service/getData'
+import { getMaterial,getMaterialV2,freshLevel,editStorage,addTrack,addTrackV2,mergePt } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 
 let firstLoad = true;
@@ -294,7 +294,7 @@ export default {
             }
             lastZoom = nowZoom;
             console.log('此处重置地图', this.bmap.getZoom());
-            this.reLoadMap();  
+            this.reLoadMap();
         },
         /**@augments
          *  大数据地图重新加载地图数据
@@ -322,6 +322,42 @@ export default {
                 tileLevel
             }
             this.fetchAllData(params);
+        },
+        async reFreshLevel(){
+            const mapBounds = this.bmap.getBounds();
+            const {
+                lat:leftLat,
+                lng:leftLon
+            } = mapBounds.getSouthWest();
+            const {
+                lat:rightLat,
+                lng:rightLon
+            } = mapBounds.getNorthEast();
+            const tileLevel = this.bmap.getZoom();
+            const params = {
+                leftLat,
+                leftLon,
+                rightLat,
+                rightLon,
+                tileLevel
+            }
+
+            const detailData = await freshLevel(params);
+            if(detailData.result != 0){
+                this.$message({
+                    type:'warning',
+                    message:detailData,
+                    duration:2000
+                })
+                return false;
+            }
+            const { edgeList } = detailData;
+            edgeList instanceof Array &&
+                edgeList.map(item => {
+                    const { edgeId,trafficLevel } = item;
+                    const levelColor = trackColor[trafficLevel];
+                    ALL_LINE[edgeId].line.setStrokeColor(levelColor);
+                })
         },
         async fetchAllData(params){  // 最开始获取所有数据
             if(this.isHttp)
@@ -395,7 +431,7 @@ export default {
                     this.mapFlag && setTimeout(() => {
                         const newFetchTime = new Date().getTime();
                         if(newFetchTime - oldFetchTime > 10000){
-                            this.reLoadMap();
+                            this.reFreshLevel();
                         }else{
                             console.log('notFetch')
                         }

@@ -135,6 +135,10 @@ export const delStorage = data => fetch('post','/storage/delete',data);
 // 以下是运行状态
 export const addRunCar = data => fetch('post','/event/run',data);
 
+/**
+ * 异步请求热力图
+ */
+export const freshLevel = data => fetch('post','/event/queryTileLevel',data);
 
 
 export const showError = error =>
