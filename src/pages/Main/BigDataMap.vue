@@ -198,7 +198,7 @@ export default {
         },
         bindAll(){
             this.$root.eventHub.$on('reloadMap',this.reLoadMap);
-            this.$root.eventHub.$on('foucsIt',this.getFoucs);
+            this.$root.eventHub.$on('foucsIt',this.getFoucs);  // 轨道列表选中某个轨道响应地图事件
 
             this.$root.eventHub.$on('clickPoint',this.setAllowPoint);  // 开启选点模式
             this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
@@ -397,7 +397,7 @@ export default {
                 },10000)
                 return false;
             }
-    
+
             if(this.mapFlag){
                 this.createPoint(allList.detail[1].vertexList,false);
             }else{
@@ -446,6 +446,7 @@ export default {
                 case 'line':
                     const linePoints = ALL_LINE[id].line.getPath();
                     this.bmap.setViewport(linePoints);
+                    this.showTrackRunningWindowInfo(id);
                     break;
                 case 'station':
                     points = ALL_STATION[id].getPosition();
@@ -677,8 +678,26 @@ export default {
                     const linePoints = ALL_LINE[item.edgeId].line.getPath();
                     this.bmap.setViewport(linePoints);
                     router.push(`editLine?track=${item.edgeId}`);
+                    // 新增弹框展示信息
+                    this.showTrackRunningWindowInfo(item.edgeId);
                 })
             })
+        },
+        /**@augments edgeId 轨道id
+         *  大数据轨道数据点击弹框显示
+         * @returns 数据
+         */
+        showTrackRunningWindowInfo(edgeId){
+          return false;
+            // 假装掉了接口
+            var sContent = "<div>信息窗口</div>";
+            var infoWindow = new BMap.InfoWindow(sContent);  // 创建信息窗口对象
+            const path = ALL_LINE[edgeId].getPath();
+            const midPoint = new BMap.Point(
+                        (path[0].lon+path[1].lon)/2,
+                        (path[0].lat+path[1].lat)/2
+                    );
+            this.bmap.openInfoWindow(infoWindow,midPoint);
         },
         updateTrack(opts){
             const strokeColor = opts.isBroken == '1'?broken:normal;
