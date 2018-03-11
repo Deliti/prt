@@ -10,6 +10,8 @@ import Home from 'pages/Home';
 import BigHome from 'pages/Home/BigHome';
 import Design from 'pages/Design';
 import Handle from 'pages/Handle'; // 功能区域
+import KeyPart from  'pages/Handle/KeyPart'
+import TrackList from 'pages/Handle/trackList';
 import Statistics from 'pages/Statistics'; // 功能区域
 import Material from 'pages/Material'; // 素材区域
 import LineList from 'pages/Material/Line/index';  // 轨道list
@@ -44,7 +46,7 @@ export default new Router({
         },
         {
           path: 'handle',
-          component: Handle
+          component: KeyPart
         },
         {
           path: 'statistics',
@@ -95,7 +97,21 @@ export default new Router({
         },
         {
           path: 'handle',
-          component: Handle
+          component: Handle,
+          children:[
+            {
+              path: '',
+              redirect: 'keyPart'
+            },
+            {
+              path: 'keyPart',
+              component: KeyPart
+            },
+            {
+              path: 'trackList',
+              component: TrackList
+            }
+          ]
         },
         {
           path: 'statistics',

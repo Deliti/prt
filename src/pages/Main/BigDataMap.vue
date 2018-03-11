@@ -164,7 +164,8 @@ export default {
             window.map = bmap;
             this.bmap = bmap;
             this.mapProjection = bmap.getMapType().getProjection();
-            bmap.centerAndZoom(new this.BMap.Point(116.404, 39.915), 18);
+            // bmap.centerAndZoom(new this.BMap.Point(116.404, 39.915), 18)
+            bmap.centerAndZoom(new this.BMap.Point(121.47, 31.23), 3);;
             this.setMapBase();
             this.initAction();
             const mapBounds = this.bmap.getBounds();
@@ -179,11 +180,11 @@ export default {
             const tileLevel = this.bmap.getZoom();
             console.log('leftLat',leftLat)
             const params = {
-                leftLat,
-                leftLon,
-                rightLat,
-                rightLon,
-                tileLevel
+                leftLat: 31.225098,
+                leftLon: 121.46501,
+                rightLat: 31.234902,
+                rightLon: 121.47499,
+                tileLevel: 3
             }
             this.fetchAllData(params);
         },
@@ -315,11 +316,11 @@ export default {
             const tileLevel = this.bmap.getZoom();
             console.log('leftLat',leftLat)
             const params = {
-                leftLat,
-                leftLon,
-                rightLat,
-                rightLon,
-                tileLevel
+                leftLat: 31.225098,
+                leftLon: 121.46501,
+                rightLat: 31.234902,
+                rightLon: 121.47499,
+                tileLevel: 3
             }
             this.fetchAllData(params);
         },
@@ -360,6 +361,7 @@ export default {
                 })
         },
         async fetchAllData(params){  // 最开始获取所有数据
+        return false
             if(this.isHttp)
                 return false;
             this.isHttp = true;
@@ -369,8 +371,8 @@ export default {
                 materialType:0
             })
             console.log('fetch',params)
-            // const allList = await getMaterialV2(params);
-            const allList = await getMaterial(params);
+            const allList = await getMaterialV2(params);
+            // const allList = await getMaterial(params);
             if(allList.result != 0){
                 this.$message({
                     type:'warning',
@@ -431,7 +433,7 @@ export default {
                     this.mapFlag && setTimeout(() => {
                         const newFetchTime = new Date().getTime();
                         if(newFetchTime - oldFetchTime > 10000){
-                            this.reFreshLevel();
+                            // this.reFreshLevel();
                         }else{
                             console.log('notFetch')
                         }
@@ -445,7 +447,8 @@ export default {
             switch(type){
                 case 'line':
                     const linePoints = ALL_LINE[id].line.getPath();
-                    this.bmap.setViewport(linePoints);
+                    // this.bmap.setViewport(linePoints);
+                    // debugger
                     this.showTrackRunningWindowInfo(id);
                     break;
                 case 'station':
@@ -638,11 +641,11 @@ export default {
             lines instanceof Array
             && lines.map((item,index) => {
                 const pts = [];
-                const ptA = ALL_PT[item.src];
+                const ptA = ALL_PT[item.src.id];
                 const APt = new BMap.Point(ptA.lon,ptA.lat);
                 pts.push(APt);
 
-                const ptB = ALL_PT[item.dst];
+                const ptB = ALL_PT[item.dst.id];
                 const BPt = new BMap.Point(ptB.lon,ptB.lat);
                 pts.push(BPt);
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
@@ -676,7 +679,7 @@ export default {
                 })
                 _bind(ALL_LINE[item.edgeId].line,'click',() => {
                     const linePoints = ALL_LINE[item.edgeId].line.getPath();
-                    this.bmap.setViewport(linePoints);
+                    // this.bmap.setViewport(linePoints);
                     router.push(`editLine?track=${item.edgeId}`);
                     // 新增弹框展示信息
                     this.showTrackRunningWindowInfo(item.edgeId);
@@ -688,13 +691,13 @@ export default {
          * @returns 数据
          */
         showTrackRunningWindowInfo(edgeId){
-          return false;
+        //   return false;
             // 假装掉了接口
-            var sContent = "<div>信息窗口</div>";
+            var sContent = "<div>正向轨道上的车辆数:10<br> 正向轨道上的时速(km/h):32<br> 反向轨道上的车辆数:12<br> 反向轨道上的时速(km/h):32</div>";
             var infoWindow = new BMap.InfoWindow(sContent);  // 创建信息窗口对象
-            const path = ALL_LINE[edgeId].getPath();
+            const path = ALL_LINE[edgeId].line.getPath();
             const midPoint = new BMap.Point(
-                        (path[0].lon+path[1].lon)/2,
+                        (path[0].lng+path[1].lng)/2,
                         (path[0].lat+path[1].lat)/2
                     );
             this.bmap.openInfoWindow(infoWindow,midPoint);
