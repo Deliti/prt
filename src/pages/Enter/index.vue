@@ -98,7 +98,8 @@ export default {
             this.eventList = data.detail;
         },
         enterPRT(trackNum, id){
-            if(trackNum > 10){
+            // trackNum > 10
+            if(true){
                 localStorage.setItem('bigData',true);
                 router.push(`/bigsimulator/${id}`)
             }else{

@@ -29,6 +29,7 @@ import Prt from 'common/js/lib/Ls'
 let firstLoad = true;
 let lastZoom;
 let oldFetchTime = new Date().getTime();
+const mapEvent = [];
 let carList = {};  // 所有车辆数组
 let carMarkers = []; // 车辆最初carMarker
 let drawingManager = null; // 绘图工具
@@ -165,7 +166,7 @@ export default {
             this.bmap = bmap;
             this.mapProjection = bmap.getMapType().getProjection();
             // bmap.centerAndZoom(new this.BMap.Point(116.404, 39.915), 18)
-            bmap.centerAndZoom(new this.BMap.Point(121.47, 31.23), 3);;
+            bmap.centerAndZoom(new this.BMap.Point(121.47, 31.23), 18);;
             this.setMapBase();
             this.initAction();
             const mapBounds = this.bmap.getBounds();
@@ -180,11 +181,11 @@ export default {
             const tileLevel = this.bmap.getZoom();
             console.log('leftLat',leftLat)
             const params = {
-                leftLat: 31.225098,
-                leftLon: 121.46501,
-                rightLat: 31.234902,
-                rightLon: 121.47499,
-                tileLevel: 3
+                leftLat,
+                leftLon,
+                rightLat,
+                rightLon,
+                tileLevel
             }
             this.fetchAllData(params);
         },
@@ -263,7 +264,7 @@ export default {
             this.bmap.enableScrollWheelZoom();
             this.bmap.enableAutoResize();
             // 最大缩放层级
-            this.bmap.setMinZoom(14);
+            // this.bmap.setMinZoom(14);
         },
         initAction(){
             this.bmap.addEventListener('mousemove',mouseEnterHandle);
@@ -313,14 +314,17 @@ export default {
                 lat:rightLat,
                 lng:rightLon
             } = mapBounds.getNorthEast();
-            const tileLevel = this.bmap.getZoom();
-            console.log('leftLat',leftLat)
+            const nowZoom = this.bmap.getZoom();
+            const stepO = [14,15];
+            const stepT = [16,17];
+            const stepR = [18,19];
+            const tileLevel = stepO.indexOf(lastZoom) != -1?1:(stepT.indexOf(lastZoom) != -1?2:(stepR.indexOf(lastZoom) != -1 ?3:1));
             const params = {
-                leftLat: 31.225098,
-                leftLon: 121.46501,
-                rightLat: 31.234902,
-                rightLon: 121.47499,
-                tileLevel: 3
+                leftLat,
+                leftLon,
+                rightLat,
+                rightLon,
+                tileLevel
             }
             this.fetchAllData(params);
         },
@@ -361,7 +365,7 @@ export default {
                 })
         },
         async fetchAllData(params){  // 最开始获取所有数据
-        return false
+        // return false
             if(this.isHttp)
                 return false;
             this.isHttp = true;
@@ -436,6 +440,12 @@ export default {
                             // this.reFreshLevel();
                         }else{
                             console.log('notFetch')
+                        }
+                        // 事件队列
+                        console.log('mapEvent',mapEvent)
+                        if(mapEvent.length != 0){
+                            mapEvent[0]();
+                            mapEvent.length = 0;
                         }
                     },10000)
                 },300)
@@ -564,6 +574,7 @@ export default {
             }
             const resData = trackData.detail;
             // 模拟后段接口字段
+            debugger
             this.createPoint(resData.vertexList,true);
             this.createLine(resData.edgeList);
             this.$root.eventHub.$emit('addCountLine');
@@ -641,11 +652,11 @@ export default {
             lines instanceof Array
             && lines.map((item,index) => {
                 const pts = [];
-                const ptA = ALL_PT[item.src.id];
+                const ptA = ALL_PT[item.src];
                 const APt = new BMap.Point(ptA.lon,ptA.lat);
                 pts.push(APt);
 
-                const ptB = ALL_PT[item.dst.id];
+                const ptB = ALL_PT[item.dst];
                 const BPt = new BMap.Point(ptB.lon,ptB.lat);
                 pts.push(BPt);
                 if(ALL_LINE.hasOwnProperty(item.edgeId)){
@@ -679,10 +690,13 @@ export default {
                 })
                 _bind(ALL_LINE[item.edgeId].line,'click',() => {
                     const linePoints = ALL_LINE[item.edgeId].line.getPath();
-                    // this.bmap.setViewport(linePoints);
-                    router.push(`editLine?track=${item.edgeId}`);
+                    mapEvent.push(() => {
+                        this.showTrackRunningWindowInfo(item.edgeId)
+                    })
+                    this.bmap.setViewport(linePoints);
+                    // router.push(`editLine?track=${item.edgeId}`);
+                    
                     // 新增弹框展示信息
-                    this.showTrackRunningWindowInfo(item.edgeId);
                 })
             })
         },
