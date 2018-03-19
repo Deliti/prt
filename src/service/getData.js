@@ -78,18 +78,18 @@ export const importTrack = (id,data) => fetch('post',`/track/importTrack?eventId
  * 新建站台
  * @param {*} data
  */
-export const addStation = data => fetch('post','/station/addStationDetail',data);
+export const addStation = data => fetch('post','/station/addStationDetailV2',data);
 
 
 /**
  * 站台详情
  */
-export const stationDetail = data => fetch('post','/station/detail',data);
+export const stationDetail = data => fetch('post','/station/detailV2',data);
 
 /**
  * 编辑站台
  */
-export const editStation = data => fetch('post','/station/editStationDetail',data);
+export const editStation = data => fetch('post','/station/editStationDetailV2',data);
 
 /**
  * 删除站台
@@ -111,7 +111,7 @@ export const getStationId = data => fetch('post','/event/queryMaterialName',data
  * 新建存储设施
  * @param {*} error
  */
-export const addStorage = data => fetch('post','/storage/addStorageDetail',data);
+export const addStorage = data => fetch('post','/storage/addStorageDetailV2',data);
 
 /**
  * 存储设施详情
@@ -121,13 +121,13 @@ export const storageDetail = data => fetch('post','/storage/detail',data);
 /**
  * 编辑存储设施
  */
-export const editStorage = data => fetch('post','/storage/editStorageDetail',data);
+export const editStorage = data => fetch('post','/storage/editStorageDetailV2',data);
 
 
 /**
  * 删除存储设施
  */
-export const delStorage = data => fetch('post','/storage/delete',data);
+export const delStorage = data => fetch('post','/storage/deleteV2',data);
 
 
 
@@ -140,6 +140,12 @@ export const addRunCar = data => fetch('post','/event/run',data);
  */
 export const freshLevel = data => fetch('post','/event/queryTileLevel',data);
 
+/**
+ * 
+ * @param {*} error 
+ * 模拟状态获得所有轨道列表
+ */
+export const queryTrackAll = data => fetch('post','/event/queryTrackAll',data);
 
 export const showError = error =>
 {

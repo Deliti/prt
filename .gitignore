@@ -5,6 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 prt/
+prt2/
 lushuquan.js
 # Editor directories and files
 .idea
@@ -12,3 +13,4 @@ lushuquan.js
 *.ntvs*
 *.njsproj
 *.sln
+

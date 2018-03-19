@@ -125,6 +125,7 @@ export default {
     created(){
         this.$root.eventHub.$on('reloadMap',this.reLoadMap);
         this.$root.eventHub.$on('foucsIt',this.getFoucs);
+        this.$root.eventHub.$on('foucsItV2',this.foucsItV2);  // 模拟状态下定位轨道
 
         this.$root.eventHub.$on('clickPoint',this.setAllowPoint);  // 开启选点模式
         this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
@@ -201,7 +202,7 @@ export default {
         bindAll(){
             this.$root.eventHub.$on('reloadMap',this.reLoadMap);
             this.$root.eventHub.$on('foucsIt',this.getFoucs);  // 轨道列表选中某个轨道响应地图事件
-
+            this.$root.eventHub.$on('foucsItV2',this.foucsItV2);  // 模拟状态下定位轨道
             this.$root.eventHub.$on('clickPoint',this.setAllowPoint);  // 开启选点模式
             this.$root.eventHub.$on('openDrawer',this.openDrawer); // 开启绘制
             // this.$root.eventHub.$on('outputLine',this.outLine);        // 生成轨迹
@@ -223,6 +224,7 @@ export default {
         offAll(){
             this.$root.eventHub.$off('reloadMap',this.reLoadMap);
             this.$root.eventHub.$off('foucsIt',this.getFoucs);
+            this.$root.eventHub.$off('foucsItV2',this.foucsItV2);  // 模拟状态下定位轨道
 
             this.$root.eventHub.$off('clickPoint',this.setAllowPoint);  // 开启选点模式
             this.$root.eventHub.$off('openDrawer',this.openDrawer); // 开启绘制
@@ -363,6 +365,14 @@ export default {
                     const levelColor = trackColor[trafficLevel];
                     ALL_LINE[edgeId].line.setStrokeColor(levelColor);
                 })
+           this.mapFlag && setTimeout(() => {
+                const newFetchTime = new Date().getTime();
+                if(newFetchTime - oldFetchTime > 10000){
+                    this.reFreshLevel();
+                }else{
+                    console.log('notFetch')
+                }
+            },10000) 
         },
         async fetchAllData(params){  // 最开始获取所有数据
         // return false
@@ -434,19 +444,20 @@ export default {
                      // 地图缩放事件，平移事件
                     this.bmap.addEventListener('zoomend',this.zoomLoadMap);
                     this.bmap.addEventListener('moveend',this.reLoadMap);
+                    // 事件队列
+                    console.log('mapEvent',mapEvent)
+                    if(this.mapFlag && mapEvent.length != 0){
+                        mapEvent[0]();
+                        mapEvent.length = 0;
+                    }
                     this.mapFlag && setTimeout(() => {
                         const newFetchTime = new Date().getTime();
                         if(newFetchTime - oldFetchTime > 10000){
-                            // this.reFreshLevel();
+                            this.reFreshLevel();
                         }else{
                             console.log('notFetch')
                         }
-                        // 事件队列
-                        console.log('mapEvent',mapEvent)
-                        if(mapEvent.length != 0){
-                            mapEvent[0]();
-                            mapEvent.length = 0;
-                        }
+                        
                     },10000)
                 },300)
             },0)
@@ -470,6 +481,16 @@ export default {
                     this.bmap.centerAndZoom(points,23)
                     break;
             }
+        },
+        foucsItV2({id,src,dst}){   
+            const viewport = [new BMap.Point(src[0],src[1]),
+                              new BMap.Point(dst[0],dst[1])]
+            mapEvent.push(() => {
+                this.showTrackRunningWindowInfo(id);
+            })
+            setTimeout(() => {
+                this.bmap.setViewport(viewport);
+            },0)
         },
         setAllowPoint(type){
             this.allowPoint = true;
@@ -663,13 +684,14 @@ export default {
                     return false;
                 }
                 ALL_LINE[item.edgeId] = {};
+                const lineStyle = Object.assign({},styleOptions) 
                 if(this.mapFlag){
-                    Object.assign(styleOptions, {
+                    Object.assign(lineStyle, {
                       strokeColor:trackColor[item.trafficLevel]
                     })
                 }
-                styleOptions.strokeColor =  item.isBroken == '1'?broken:normal;
-                ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,styleOptions);
+                lineStyle.strokeColor =  item.isBroken == '1'?broken:lineStyle.strokeColor;
+                ALL_LINE[item.edgeId].line = new BMap.Polyline(pts,lineStyle);
                 map.addOverlay(ALL_LINE[item.edgeId].line);
                 const lineLabel = new BMap.Label(item.name,{
                     offset:new BMap.Size(-10,-10),
@@ -690,11 +712,14 @@ export default {
                 })
                 _bind(ALL_LINE[item.edgeId].line,'click',() => {
                     const linePoints = ALL_LINE[item.edgeId].line.getPath();
-                    mapEvent.push(() => {
-                        this.showTrackRunningWindowInfo(item.edgeId)
-                    })
                     this.bmap.setViewport(linePoints);
-                    // router.push(`editLine?track=${item.edgeId}`);
+                    if(this.mapFlag){
+                        mapEvent.push(() => {
+                            this.showTrackRunningWindowInfo(item.edgeId)
+                        })
+                    }else{
+                        router.push(`editLine?track=${item.edgeId}`);
+                    }
                     
                     // 新增弹框展示信息
                 })
