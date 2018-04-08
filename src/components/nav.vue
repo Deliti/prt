@@ -18,6 +18,9 @@
                     <span :class="mapFlag?'':'active'">编辑状态</span>
                 </div>
             </div>
+            <div class="left" v-show="mapFlag">
+                <button @click="selfFresh">手动刷新</button>
+            </div>
         </header>
         <div class="head-holder"></div>
     </div>
@@ -88,12 +91,15 @@ export default {
         },
         linkArea(path){
             const bigData = localStorage.getItem('bigData');
-            if(bigData){
+            if(true){
                 router.push(`/bigsimulator/${this.$route.params.id}/${path}`)
             }else{
                router.push(`/simulator/${this.$route.params.id}/${path}`);
             }
             this.$emit('resetMap'); 
+        },
+        selfFresh(){
+            this.$emit('selfFresh');
         }
     }
 }

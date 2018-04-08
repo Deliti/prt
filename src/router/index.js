@@ -11,6 +11,7 @@ import BigHome from 'pages/Home/BigHome';
 import Design from 'pages/Design';
 import Handle from 'pages/Handle'; // 功能区域
 import KeyPart from  'pages/Handle/KeyPart'
+import MapData from 'pages/Handle/mapData'
 import TrackList from 'pages/Handle/trackList';
 import Statistics from 'pages/Statistics'; // 功能区域
 import Material from 'pages/Material'; // 素材区域
@@ -101,11 +102,11 @@ export default new Router({
           children:[
             {
               path: '',
-              redirect: 'keyPart'
+              redirect: 'mapData'
             },
             {
-              path: 'keyPart',
-              component: KeyPart
+              path: 'mapData',
+              component: MapData 
             },
             {
               path: 'trackList',

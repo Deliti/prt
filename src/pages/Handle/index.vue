@@ -1,7 +1,7 @@
 <template>
     <section class="">
         <div class="handletop f_origin">
-            <div :class="path == 'keyPart'?'f_origin':'f_white'" @click="change('keyPart')">功能键</div>
+            <div :class="path == 'mapData'?'f_origin':'f_white'" @click="change('mapData')">地图数据</div>
             <div :class="path == 'trackList'?'f_origin':'f_white'" @click="change('trackList')">轨道列表</div>
         </div> 
         <router-view></router-view>
@@ -14,7 +14,7 @@ import {mapState,mapMutations} from 'vuex'
 export default {
     data(){
         return {
-            path: 'keyPart'
+            path: 'mapData'
         }
     },
     methods:{

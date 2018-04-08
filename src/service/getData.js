@@ -29,6 +29,11 @@ export const getMaterial = data => fetch('post','/event/detail',data)
 export const getMaterialV2 = data => fetch('post','/event/detailV2',data)
 
 /**
+ *  大数据热力图
+ */
+export const getHotLevel = data => fetch('post','/event/queryThermodynamic',data)
+
+/**
  * 后台根据参数算出终点
  */
 export const getTargetLngLat = data => fetch('post','/distance/getTrackEndLocation',data)
@@ -36,7 +41,7 @@ export const getTargetLngLat = data => fetch('post','/distance/getTrackEndLocati
 /**
  *  合并点
  */
-export const mergePt = data => fetch('post','/track/mergeVertex',data);
+export const mergePt = data => fetch('post','/track/mergeVertexV2',data);
 
 /**
  * 新建轨道
@@ -61,7 +66,7 @@ export const trackDetail = data => fetch('post','/track/detail',data);
 /**
  * 删除轨道
  */
-export const trackDel = data => fetch('post','/track/delete',data);
+export const trackDel = data => fetch('post','/track/deleteV2',data);
 
 
 /**
@@ -84,7 +89,7 @@ export const addStation = data => fetch('post','/station/addStationDetailV2',dat
 /**
  * 站台详情
  */
-export const stationDetail = data => fetch('post','/station/detailV2',data);
+export const stationDetail = data => fetch('post','/station/detail',data);
 
 /**
  * 编辑站台
@@ -94,7 +99,7 @@ export const editStation = data => fetch('post','/station/editStationDetailV2',d
 /**
  * 删除站台
  */
-export const delStation = data => fetch('post','/station/delete',data);
+export const delStation = data => fetch('post','/station/deleteV2',data);
 
 /**
  * 得到车辆存储设施的坐标
@@ -140,6 +145,10 @@ export const addRunCar = data => fetch('post','/event/run',data);
  */
 export const freshLevel = data => fetch('post','/event/queryTileLevel',data);
 
+/**
+ * 主动刷新后台定时任务
+ */
+export const startTileLevelPackage = data => fetch('post','/event/startTileLevelPackage',data)
 /**
  * 
  * @param {*} error 

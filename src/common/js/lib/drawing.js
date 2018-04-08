@@ -1064,7 +1064,9 @@ var BMAP_DRAWING_MARKER    = "marker",     // 鼠标画点模式
             }
             if (!isBinded) {
                 isBinded = true;
-                mask.enableEdgeMove();
+                if(me._opts.enableEdgeMove){
+                    mask.enableEdgeMove();
+                }
                 mask.addEventListener('mousemove', mousemoveAction);
                 mask.addEventListener('dblclick', dblclickAction);
             }

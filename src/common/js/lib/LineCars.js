@@ -183,7 +183,8 @@ baidu.object.extend(CustomOverlay.prototype, {
         this.lushuMain = lushuMain;
     }
 });
-export default class Prt {
+import Prt from './Ls'
+export default class Lcs {
     constructor(map,pathList,opts){
         this._map = map;
         this.pathList = pathList;
@@ -208,16 +209,57 @@ export default class Prt {
             defaultContent: '',
             callback:null
         }
+        this.markers = []; // 这条轨道小车集合
         this._setOptions(opts);
         this.init();
     }
 
     init(){
-        this._addMarker();
-        this.setRotation(this.nowPt,this._path[1]);
+        this.getStartPs();
     }
 
-    _addMarker(){
+    getStartPs(){
+        const me = this;
+        const startPts = this._returnStartPt();
+        startPts.map((pts, index) => {
+            let car = new Prt(this._map, [{
+                path: [pts,me._path[1]],
+                speed: me.speed
+            }], {
+                landmarkPois:[],
+                icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
+            })
+            this.markers.push(car) 
+        })
+    }
+
+    _resetStartPt(num,speed){
+        this._opts.countNum = num;
+        this.speed = speed;
+        this.markers.map(car => {
+            car.stop();
+        })
+        this.markers = [];
+        this.getStartPs();
+    }
+
+    _returnStartPt(){
+        const me = this;
+        const startPts = [];
+        const initPos = me._projection.lngLatToPoint(me._path[0]),
+                targetPos = me._projection.lngLatToPoint(me._path[1]);
+        for(let i = 0;i < this._opts.countNum;i++){
+            const posXY = {
+                x:(targetPos.x - initPos.x) / this._opts.countNum * i + initPos.x,
+                y:(targetPos.y - initPos.y) / this._opts.countNum * i + initPos.y
+            }
+            const pos = me._projection.pointToLngLat(new BMap.Pixel(posXY.x,posXY.y));
+            startPts.push(pos);
+        }
+        return startPts;
+    }
+
+    _addMarker(pos){
         if (this._marker) {
             this._map.removeOverlay(this._marker);
         }
@@ -228,7 +270,6 @@ export default class Prt {
         this._map.addOverlay(marker);
         // marker.setAnimation(BMAP_ANIMATION_DROP);
         this._marker = marker;
-        this._addInfoWin();
     }
 
     /**
@@ -237,8 +278,6 @@ export default class Prt {
      */
     _addInfoWin() {
         const me = this;
-        if(me._opts.defaultContent == '')
-            return false;
         const overlay = new CustomOverlay(me._marker.getPosition(), me._opts.defaultContent);
 
         //将当前类的引用传给overlay。
@@ -255,8 +294,6 @@ export default class Prt {
     _setInfoWin(pos){
         //设置上方overlay的position
         const me = this;
-        if(me._opts.defaultContent == '')
-            return false;
         me._overlay.setPosition(pos, me._marker.getIcon().size);
         // var index = me._troughPointIndex(pos);
         // if (index != -1) {
@@ -287,19 +324,25 @@ export default class Prt {
     
     move(){
         // 运行结束
-        if(this._fromPause || this._fromStop){
-            return false;
-        }
-        if(this._pathIndex >= this.pathList.length){
-            this._fromStop = true;
-        }
+        // if(this._fromPause || this._fromStop){
+        //     return false;
+        // }
+        // if(this._pathIndex >= this.pathList.length){
+        //     this._fromStop = true;
+        // }
         // this.setRotation(this.nowPt,this._path[1]);
-        const nextPoint = this._getNextPt();
-        if(nextPoint){
-            this._marker.setPosition(nextPoint);
-            this._setInfoWin(nextPoint);
-            this.nowPt = nextPoint;
-        }
+        // const nextPoint = this._getNextPt();
+        // if(nextPoint){
+        //     this._marker.setPosition(nextPoint);
+        //     this.nowPt = nextPoint;
+        // }
+        this.markers.map((car, idx) => {
+            car.move();
+            if(car._fromStop){
+                this.markers.pop();
+                this._addNewCar();
+            }
+        })
     }
     
 
@@ -355,6 +398,18 @@ export default class Prt {
             x:(target.x - initPos.x) / count + initPos.x,
             y:(target.y - initPos.y) / count + initPos.y
         }
+    }
+
+    _addNewCar(){
+        const me = this;
+        let car = new Prt(this._map, [{
+            path: me._path,
+            speed: me.speed
+        }], {
+            landmarkPois:[],
+            icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
+        })
+        this.markers.unshift(car) 
     }
 
     // 获取当前轨道与x的夹角

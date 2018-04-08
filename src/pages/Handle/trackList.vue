@@ -1,10 +1,7 @@
 <template>
     <section class="parent">
-        <div class="tips-title gray_2 f_origin">
-            全部轨道列表
-        </div>
-        <section class="aside-menu-box gray_3 f_origin">
-            <ul>
+        <section class="aside-menu-box gray_3 f_origin" id="trackListId">
+            <ul id="trackListSlide">
                 <li 
                     v-for="(item,index) in trackList" 
                     :key="index" 
@@ -19,20 +16,22 @@
 import router from '@/router'
 import {mapState,mapMutations} from 'vuex'
 import { queryTrackAll } from '@/service/getData'
-
+let canQuery = true;
 const pageSize = 20;
 export default {
     data(){
         return {
             trackList: [],
             pageNo: 0,
-            pages: 1
+            pages: 1,
+            edgeCount: 0
         }
     },
     computed:{
         ...mapState(['mapFlag','runStatus','hasCar']),
     },
     mounted(){
+        this.initAction();
         this.getList();
     },
     beforeDestroy(){
@@ -43,12 +42,25 @@ export default {
     },
     methods:{
         ...mapMutations(['CHANGERUNSTATUS','SETHASCAR']),
+        initAction(){
+            const listWrap = document.querySelector('#trackListId');
+            const listSlide = document.querySelector('#trackListSlide'); 
+            listWrap.addEventListener('scroll',(e) => {
+                if(listWrap.scrollTop + listWrap.clientHeight > listSlide.offsetHeight){
+                    if(this.trackList.length < this.edgeCount && canQuery){
+                        this.pageNo++;
+                        this.getList();
+                    }
+                }
+            })
+        },
         async getList(){
             const params = {
                 eventId	: this.$route.params.id,
                 pageIndex : this.pageNo,
                 pageSize
             }
+            canQuery = false;
             const trackData = await queryTrackAll(params);
             if(trackData.result != 0){
                 this.$message({
@@ -60,9 +72,10 @@ export default {
             }
             const { pageNo,pages,detail } = trackData;
             const { edgeCount,edgeList } = detail;
-            this.pageNo = pageNo;
             this.pages = pages;
+            this.edgeCount = edgeCount;
             this.trackList.push(...edgeList);
+            canQuery = true;
         },
         foucs(item){
             const { edgeId,dst,src } = item;
@@ -79,7 +92,9 @@ export default {
 <style lang="less" scoped>
 @screen-md:1200px;
 @screen-lg:1800px;
-
+.parent{
+    height: calc(~"100% - 30px");
+}
 .tips-title{
     height: 30px;
     line-height: 30px;

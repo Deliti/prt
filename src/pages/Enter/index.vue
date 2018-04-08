@@ -80,7 +80,8 @@ export default {
                     return false;
                 }
                 const {id} = addData.detail;
-                router.push(`/simulator/${id}`);
+                router.push(`/bigsimulator/${id}`) 
+                // router.push(`/simulator/${id}`);
             }).catch(() => {
                       
             });

@@ -228,7 +228,8 @@ export default {
                 polylineOptions: dashStyleOptions, //线的样式
                 verifyFirst:this.verifyAll,
                 verifyAll:this.verifyAll,
-                callback:this.drawLine
+                callback:this.drawLine,
+                enableEdgeMove: true
             });  
             drawingManager._setDrawingMode('polyline');
             this.bmap.addEventListener('rightdblclick',function(){

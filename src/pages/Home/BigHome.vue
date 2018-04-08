@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-      <nav-div @resetMap="resetMap"></nav-div>
+      <nav-div @resetMap="resetMap" @selfFresh="selfFresh"></nav-div>
       <div class="main">
         <map-div class="map" ref="map"></map-div>
         <aside class="right handle-area gray_3">
@@ -35,6 +35,9 @@ export default {
         resetMap(){
             console.log(this.$refs.map)
             this.$refs.map.reLoadMap();
+        },
+        selfFresh(){
+            this.$refs.map.selfRefreshTile()
         }
     }
 }

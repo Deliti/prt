@@ -41,7 +41,8 @@ const state = {
 	},
 	// 以下是运行功能键
 	runStatus: 0, // 0 还未开始，1 运行，2 暂停，3 停止
-	hasCar:false
+	hasCar:false,
+	levelData: {}
 }
 
 export default new Vuex.Store({

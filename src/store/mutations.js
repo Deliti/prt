@@ -1,6 +1,9 @@
 import { type } from "os";
 
 export default {
+	SETLEVEL(state,obj){
+		state.levelData = obj;
+	},
 	SETHASCAR(state,boo){
 		state.hasCar = boo
 	},

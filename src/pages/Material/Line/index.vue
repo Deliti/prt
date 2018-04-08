@@ -13,7 +13,7 @@
 <script>
 import router from '@/router'
 import {mapState,mapMutations} from 'vuex';
-import { getMaterial,addTrack,editTrack } from '@/service/getData'
+import { getMaterial,getMaterialV2,addTrack,editTrack } from '@/service/getData'
 import List from '../List'
 
 export default {
@@ -41,7 +41,7 @@ export default {
                 "materialType": 1
             }
             this.isHttp = true;
-            const trackList = await getMaterial(params)
+            const trackList = await getMaterialV2(params)
             if(trackList.result != 0){
                 this.$message({
                         message: trackList.message,
