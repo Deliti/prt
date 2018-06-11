@@ -8,6 +8,7 @@ import Enter from 'pages/Enter';
 // 模拟器页面
 import Home from 'pages/Home';
 import BigHome from 'pages/Home/BigHome';
+import CoolBigHome from 'pages/Home/CoolBigHome';
 import Design from 'pages/Design';
 import Handle from 'pages/Handle'; // 功能区域
 import KeyPart from  'pages/Handle/KeyPart'
@@ -91,6 +92,71 @@ export default new Router({
       path: '/bigsimulator/:id',
       name: 'bigsimulator',
       component: BigHome,
+      children:[
+        {
+          path: '',
+          redirect: 'material'
+        },
+        {
+          path: 'handle',
+          component: Handle,
+          children:[
+            {
+              path: '',
+              redirect: 'mapData'
+            },
+            {
+              path: 'mapData',
+              component: MapData 
+            },
+            {
+              path: 'trackList',
+              component: TrackList
+            }
+          ]
+        },
+        {
+          path: 'statistics',
+          component: Statistics
+        },
+        {
+          path: 'material',
+          component: Material,
+          name:'material',
+        },
+        {
+          path: 'line',
+          name: 'line',
+          component: LineList
+        },
+        {
+          path: 'editLine',
+          component: EditLine
+        },
+        {
+          path: 'station',
+          name:'station',
+          component: StaList
+        },
+        {
+          path: 'editStation',
+          component: EditSta
+        },
+        {
+          path: 'save',
+          name: 'save',
+          component: SaveList
+        },
+        {
+          path: 'editSave',
+          component: EditSave
+        }
+      ]
+    },
+    {
+      path: '/coolsimulator/:id',
+      name: 'bigsimulator',
+      component: CoolBigHome,
       children:[
         {
           path: '',

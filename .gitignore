@@ -7,6 +7,7 @@ yarn-error.log*
 prt/
 prt2/
 prt3/
+test/
 lushuquan.js
 # Editor directories and files
 .idea

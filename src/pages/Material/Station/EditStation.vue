@@ -235,7 +235,8 @@ export default {
                     })
                     return false;
                 }
-                const {id,vertexId,name} = addData.detail;
+                let {id,vertexId,name} = addData.detail;
+                name = addData.detail.userDefineName || addData.detail.name
                 console.log('id',id)
                 this.$root.eventHub.$emit('insertStation',{id,vertexId,name})
                 this.$message({

@@ -1,6 +1,12 @@
 import { type } from "os";
 
 export default {
+	SETLNG(state, lng){
+		state.addEventLng = lng
+	},
+	SETLAT(state, lat){
+		state.addEventLat = lat
+	},
 	SETLEVEL(state,obj){
 		state.levelData = obj;
 	},

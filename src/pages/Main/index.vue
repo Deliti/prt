@@ -1053,7 +1053,7 @@ export default {
 .shade{
     position: fixed;
     left: 0;top:0;
-    z-index: 9999;
+    z-index: 1111;
     width: 100%;
     height: 100%;
     user-select: none;

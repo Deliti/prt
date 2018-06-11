@@ -5,7 +5,6 @@
         </div>
         <div v-show="isHttp" class="hide-wrap shade">
             <div class="hide-loading"></div>
-            <p>正在加载数据...</p>
         </div>
     </div>
 </template>
@@ -21,6 +20,8 @@ import { pointDrag,curline,isPointOnPolyline,getPoint } from 'common/js/BMap.get
 import savepng from './img/storage.png'
 import bigIcon from './img/icon-big.png';
 import carIcon from './img/car.png';
+// import moveIcon from './img/moveIcon.png';
+import moveIcon from './img/moveIcon2.png';
 import { getMaterial,getMaterialV2,getHotLevel,freshLevel,editStorage,addTrack,addTrackV2,mergePt,startTileLevelPackage } from '@/service/getData'
 import Prt from 'common/js/lib/Ls'
 import Lcs from 'common/js/lib/LineCars'
@@ -98,7 +99,7 @@ export default {
         }
     },
     computed:{
-        ...mapState(['station','save','mapFlag','runStatus']),
+        ...mapState(['station','save','mapFlag','runStatus','addEventLng','addEventLat']),
         delStation(){
             if(this.station.edit.overlay && this.station.edit.overlay.del){
                 this.bmap.removeOverlay(this.station.edit.overlay)
@@ -179,6 +180,7 @@ export default {
             } else{
                 bmap.centerAndZoom(new this.BMap.Point(121.47,31.23), 18);
             }
+            
             heatmapOverlay = new BMapLib.HeatmapOverlay({"radius":10});
             bmap.addOverlay(heatmapOverlay);
             heatmapOverlay.hide();
@@ -313,8 +315,9 @@ export default {
          *  大数据地图重新加载地图数据
          */
         reLoadMap(e){
-            console.log('what')
             this.resetMap();
+            const mapStyle = this.mapFlag?'midnight':'normal'
+            this.bmap.setMapStyle({style:mapStyle})
             heatmapOverlay = new BMapLib.HeatmapOverlay({"radius":10});
             this.bmap.addOverlay(heatmapOverlay);
             this.initAction();
@@ -358,74 +361,24 @@ export default {
                 rightLon,
                 tileLevel: 3
             }
-            // const detailData = await getHotLevel(params);
-            // if(detailData.result != 0){
-            //     this.$message({
-            //         type:'warning',
-            //         message:detailData,
-            //         duration:2000
-            //     })
-            //     return false;
-            // }
-            // let { points, levelDate } = detailData.detail;
-            // console.log('levelDate',levelDate)
-            // levelDate = !levelDate?{}:levelDate;
-            // this.SETLEVEL(levelDate);
-            // heatmapOverlay.setDataSet({data:points,max:100});
-            // this.bmap.addOverlay(heatmapOverlay)
-            // heatmapOverlay.show();
-
-            const detailData = await freshLevel(params);
-            if(detailData.result != 0){
-                this.$message({
-                    type:'warning',
-                    message:detailData,
-                    duration:2000
+            this.isHttp = true;
+            if(stepR.indexOf(lastZoom) != -1){
+                this.freshLevelCars(params).then(ok => {
+                    this.isHttp = false
                 })
-                return false;
+            }else{
+                Promise.all([this.freshLevelCars(params), this.freshLevelHot(params)])
+                .then(pData => {
+                    this.isHttp = false
+                })
+                .catch(err => {
+                    this.$message({
+                        message: '请求失败',
+                        type: 'warning',
+                        duration: 2000
+                    })
+                })
             }
-            let { edgeLevelDateList,levelDate } = detailData.detail;
-            console.log('levelDate',levelDate)
-            levelDate = levelDate == null?{}:levelDate;
-            this.SETLEVEL(levelDate);
-            clearInterval(runTimer);
-            runTimer = null;
-            edgeLevelDateList instanceof Array &&
-                edgeLevelDateList.map(item => {
-                    const { 
-                        edgeId,
-                        forwardTrafficLevel:trafficLevel,
-                        forwardCar,
-                        forwardSpeed,
-                        reverseCar,
-                        reverseSpeed
-                    } = item;
-                    console.log('forwardCar',forwardCar)
-                    const levelColor = trackColor[trafficLevel];
-                    // ALL_LINE[edgeId].line.setStrokeColor(levelColor);
-                    ALL_LINE[edgeId].carMarkers?
-                    ALL_LINE[edgeId].carMarkers._resetStartPt(trafficLevel+1,forwardSpeed)
-                    :ALL_LINE[edgeId].carMarkers = this.createLineCars(ALL_LINE[edgeId].line.getPath(),trafficLevel+1,forwardSpeed);
-                    ALL_LINE[edgeId].carMarkers.move()
-                    ALL_LINE[edgeId].line.UDF = {
-                        edgeId,
-                        forwardCar,
-                        forwardSpeed,
-                        reverseCar,
-                        reverseSpeed 
-                    }
-                })
-            runTimer = setInterval(() => {
-                edgeLevelDateList instanceof Array &&
-                edgeLevelDateList.map(item => {
-                    const { 
-                        edgeId
-                    } = item;
-                    ALL_LINE[edgeId].carMarkers.move();
-                }) 
-            },100)
-            
-            this.isHttp = false;
             this.mapFlag && setTimeout(() => {
                 if(!this.mapFlag){
                     return false;
@@ -440,56 +393,85 @@ export default {
             },10000) 
         },
         // 轨道循环点版本
-        async xunhuanguidaobanben(){
-            const detailData = await freshLevel(params);
-            if(detailData.result != 0){
-                this.$message({
-                    type:'warning',
-                    message:detailData,
-                    duration:2000
-                })
-                return false;
-            }
-            let { edgeLevelDateList,levelDate } = detailData.detail;
-            console.log('levelDate',levelDate)
-            levelDate = levelDate == null?{}:levelDate;
-            this.SETLEVEL(levelDate);
-            edgeLevelDateList instanceof Array &&
-                edgeLevelDateList.map(item => {
-                    const { 
-                        edgeId,
-                        forwardTrafficLevel:trafficLevel,
-                        forwardCar,
-                        forwardSpeed,
-                        reverseCar,
-                        reverseSpeed
-                    } = item;
-                    console.log('forwardCar',forwardCar)
-                    const levelColor = trackColor[trafficLevel];
-                    // ALL_LINE[edgeId].line.setStrokeColor(levelColor);
-                    clearInterval(runTimer);
-                    runTimer = null;
-                    ALL_LINE[edgeId].carMarkers?
-                    ALL_LINE[edgeId].carMarkers._resetStartPt(trafficLevel+1,forwardSpeed)
-                    :ALL_LINE[edgeId].carMarkers = this.createLineCars(ALL_LINE[edgeId].line.getPath(),trafficLevel+1,forwardSpeed);
-                    ALL_LINE[edgeId].carMarkers.move()
-                    ALL_LINE[edgeId].line.UDF = {
-                        edgeId,
-                        forwardCar,
-                        forwardSpeed,
-                        reverseCar,
-                        reverseSpeed 
-                    }
-                })
-            runTimer = setInterval(() => {
-                edgeLevelDateList instanceof Array &&
-                edgeLevelDateList.map(item => {
-                    const { 
-                        edgeId
-                    } = item;
-                    ALL_LINE[edgeId].carMarkers.move();
-                }) 
-            },100)
+        freshLevelCars(params){
+            return new Promise(async (resolve, reject) => {
+                try {
+                const detailData = await freshLevel(params);
+                if(detailData.result != 0){
+                    this.$message({
+                        type:'warning',
+                        message:detailData,
+                        duration:2000
+                    })
+                    return false;
+                }
+                let { edgeLevelDateList,levelDate } = detailData.detail;
+                levelDate = levelDate == null?{}:levelDate;
+                this.SETLEVEL(levelDate);
+                clearInterval(runTimer);
+                runTimer = null;
+                if(stepR.indexOf(lastZoom) != -1){
+                    edgeLevelDateList instanceof Array &&
+                        edgeLevelDateList.map(item => {
+                            const { 
+                                edgeId,
+                                forwardTrafficLevel:trafficLevel,
+                                forwardCar,
+                                forwardSpeed,
+                                reverseCar,
+                                reverseSpeed
+                            } = item;
+                            const levelColor = trackColor[trafficLevel];
+                            // ALL_LINE[edgeId].line.setStrokeColor(levelColor);
+                            ALL_LINE[edgeId].carMarkers?
+                            ALL_LINE[edgeId].carMarkers._resetStartPt(trafficLevel+1,forwardSpeed)
+                            :ALL_LINE[edgeId].carMarkers = this.createLineCars(ALL_LINE[edgeId].line.getPath(),trafficLevel+1,forwardSpeed);
+                            ALL_LINE[edgeId].carMarkers.move()
+                            ALL_LINE[edgeId].line.UDF = {
+                                edgeId,
+                                forwardCar,
+                                forwardSpeed,
+                                reverseCar,
+                                reverseSpeed 
+                            }
+                        })
+                    runTimer = setInterval(() => {
+                        edgeLevelDateList instanceof Array &&
+                        edgeLevelDateList.map(item => {
+                            const { 
+                                edgeId
+                            } = item;
+                            ALL_LINE[edgeId].carMarkers.move();
+                        }) 
+                    },100)
+                }
+                resolve('ok')
+                }catch(err){
+                reject('notok')
+                }
+            })
+        },
+        freshLevelHot(params){
+            return new Promise(async (resolve, reject) => {
+                try{
+                const detailData = await getHotLevel(params);
+                if(detailData.result != 0){
+                    this.$message({
+                        type:'warning',
+                        message:detailData,
+                        duration:2000
+                    })
+                    return false;
+                }
+                let { points } = detailData.detail;
+                heatmapOverlay.setDataSet({data:points,max:100});
+                this.bmap.addOverlay(heatmapOverlay)
+                heatmapOverlay.show();
+                resolve('ok')
+                }catch(err){
+                reject('notok')
+                }
+            })
         },
         async selfRefreshTile(){
             if(this.mapFlag){
@@ -556,7 +538,8 @@ export default {
             setTimeout(() => {
                 this.createLine(allList.detail[1].edgeList);
                 allList.detail[2].map((item) => {
-                    const {id,vertexId,name} = item;
+                    let {id,vertexId,name} = item;
+                    name = item.userDefineName || item.name
                     this.importStation({id,vertexId,name});
                 })
                 setTimeout(() => {
@@ -860,10 +843,29 @@ export default {
                         (ptA.lat+ptB.lat)/2
                     )
                 })
-
+                if(stepR.indexOf(lastZoom) != -1){
+                    Object.assign(labelStyle, {
+                        height: '20px',
+                        lineHeight: '20px'
+                    })
+                }else if(stepT.indexOf(lastZoom) != -1){
+                    Object.assign(labelStyle, {
+                        height: '16px',
+                        lineHeight: '16px'
+                    })
+                }else{
+                    Object.assign(labelStyle, {
+                        height: '12px',
+                        lineHeight: '12px'
+                    })
+                }
                 lineLabel.setStyle(labelStyle);
                 ALL_LINE[item.edgeId].label = lineLabel;
-                map.addOverlay(lineLabel);
+                if(this.mapFlag && stepR.indexOf(lastZoom) == -1){
+                    
+                }else{
+                    this.bmap.addOverlay(lineLabel);
+                }
                 _bind(ALL_LINE[item.edgeId].line,'mouseover',function(){
                     this.setStrokeWeight(10);
                 });
@@ -878,9 +880,9 @@ export default {
                     Object.assign(infoPar, meLine.UDF);
                     this.bmap.setViewport(linePoints);
                     if(this.mapFlag){ 
-                        mapEvent.push(() => {
-                            this.showTrackRunningWindowInfo(infoPar)
-                        })
+                        // mapEvent.push(() => {
+                        //     this.showTrackRunningWindowInfo(infoPar)
+                        // })
                     }else{
                         router.push(`editLine?track=${item.edgeId}`);
                     }
@@ -1446,7 +1448,7 @@ export default {
                 landmarkPois:[],
                 countNum: num,
                 // speed: 600,//路书速度
-                icon: new BMap.Icon(carIcon, new BMap.Size(52,26), {anchor: new BMap.Size(27, 13)})//覆盖物图标，默认是百度的红色地点标注
+                icon: moveIcon//覆盖物图标，默认是百度的红色地点标注
             })
         }
     }

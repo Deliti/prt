@@ -92,7 +92,8 @@ export default {
         linkArea(path){
             const bigData = localStorage.getItem('bigData');
             if(true){
-                router.push(`/bigsimulator/${this.$route.params.id}/${path}`)
+                // router.push(`/bigsimulator/${this.$route.params.id}/${path}`)
+                router.push(`/coolsimulator/${this.$route.params.id}/${path}`)
             }else{
                router.push(`/simulator/${this.$route.params.id}/${path}`);
             }
@@ -112,7 +113,7 @@ export default {
 .app-header{
     position: fixed;
     left: 0;top: 0;
-    z-index: 9999;
+    z-index: 1111;
     width: 100%;
     background: #25262D;
     height: 45px;

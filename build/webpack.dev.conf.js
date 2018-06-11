@@ -51,6 +51,10 @@ module.exports = merge(baseWebpackConfig, {
       {
         from: path.resolve(__dirname, "../src/common/js/lib/drawing.js"),
         to: './static/js/drawing.js' 
+      },
+      {
+        from: path.resolve(__dirname, "../src/common/js/lib/echarts.common.min.js"),
+        to: './static/js/echarts.common.min.js' 
       }
     ])
   ]

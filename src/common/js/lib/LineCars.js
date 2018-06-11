@@ -203,7 +203,7 @@ export default class Lcs {
         // 结束标志
         this._fromStop = false;
         this._opts = {
-            icon: null,
+            icon: 'http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png',
             //默认速度 米/秒
             speed: 4000,
             defaultContent: '',
@@ -227,7 +227,7 @@ export default class Lcs {
                 speed: me.speed
             }], {
                 landmarkPois:[],
-                icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
+                icon: new BMap.Icon(me._opts.icon, new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
             })
             this.markers.push(car) 
         })
@@ -407,7 +407,7 @@ export default class Lcs {
             speed: me.speed
         }], {
             landmarkPois:[],
-            icon: new BMap.Icon('http://api.map.baidu.com/library/CurveLine/1.5/src/circle.png', new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
+            icon: new BMap.Icon(me._opts.icon, new BMap.Size(16,16))//覆盖物图标，默认是百度的红色地点标注
         })
         this.markers.unshift(car) 
     }

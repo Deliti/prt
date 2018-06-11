@@ -12,13 +12,35 @@
                 <listItem 
                     v-for="(item,index) in eventList"
                     :key="index"
-                    @enter="enterPRT(item.trackNum, item.eventId)"
+                    @enter="enterPRT(item)"
                     :data="item"
                     :num="index"
                     @delEvent="delEvent(item.eventId)"
                     ></listItem>
             </section>
         </div> 
+        <div class="coverwrap" v-show="addFlag">
+            <div class="cover"></div>
+            <section class="addForm">
+                <el-form ref="form" :model="form" label-width="80px">
+                    <el-form-item label="活动名称" >
+                        <el-input v-model="form.eventName"></el-input>
+                    </el-form-item>
+                    <el-form-item label="活动区域">
+                        <el-cascader
+                            expand-trigger="hover"
+                            :options="cities"
+                            v-model="form.cityId"
+                            @change="handleChange">
+                        </el-cascader>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="onSubmit">立即创建</el-button>
+                        <el-button @click="cancelAdd">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </section>
+        </div>
     </div>
 </template>
 
@@ -26,14 +48,20 @@
 import router from '@/router'
 import {mapState,mapMutations} from 'vuex'
 import { getJosnStore } from '@/config/mUtils'
-import { createEvent,getEventList,delEvent } from '@/service/getData'
+import { createEvent,getEventList,getCities,delEvent } from '@/service/getData'
 import listItem from './children/list'
 import NavTop from 'components/nav'
 
 export default {
     data(){
         return{
-            eventList:[]
+            eventList:[],
+            addFlag: false,
+            cities: [],
+            form: {
+                eventName: '',
+                cityId: []
+            }
         }
     },
     computed:{
@@ -57,34 +85,85 @@ export default {
     },
     mounted(){
         this.getEventList();
+        this.getCities()
     },
     components:{
         NavTop,
         listItem
     },
     methods:{
-        ...mapMutations(['SETBIGDATA']),
+        ...mapMutations(['SETBIGDATA','SETLNG','SETLAT']),
         addEvent(){
-            this.$prompt('请输入名称', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                inputPattern:/\S/, 
-            }).then(async ({ value }) => {
-                const addData = await createEvent(value);
-                if(addData.result != 0){
-                    this.$message({
-                        message: addData,
-                        type: 'warning',
-                        duration: 2000
-                    })
-                    return false;
-                }
-                const {id} = addData.detail;
-                router.push(`/bigsimulator/${id}`) 
-                // router.push(`/simulator/${id}`);
-            }).catch(() => {
+            this.addFlag = true
+
+            // this.$prompt('请输入名称', '提示', {
+            //     confirmButtonText: '确定',
+            //     cancelButtonText: '取消',
+            //     inputPattern:/\S/, 
+            // }).then(async ({ value }) => {
+            //     const addData = await createEvent(value);
+            //     if(addData.result != 0){
+            //         this.$message({
+            //             message: addData,
+            //             type: 'warning',
+            //             duration: 2000
+            //         })
+            //         return false;
+            //     }
+            //     const {id} = addData.detail;
+            //     router.push(`/bigsimulator/${id}`) 
+            //     // router.push(`/simulator/${id}`);
+            // }).catch(() => {
                       
-            });
+            // });
+        },
+        handleChange (prov){
+            // console.log('prov', prov)
+        },
+        async onSubmit(){
+            console.log(this.form)
+            if (!this.form.cityId[1]){
+                this.$message({
+                    message: '请选择城市',
+                    type: 'warning',
+                    duration: 2000
+                })
+                return false;
+            }
+            if (this.form.eventName.length > 5){
+                this.$message({
+                    message: '事件名称少于5位',
+                    type: 'warning',
+                    duration: 2000
+                })
+                return false;
+            }
+            const params = {
+                cityId: this.form.cityId[1],
+                eventName: this.form.eventName
+            }
+            const addData = await createEvent(params);
+            if(addData.result != 0){
+                this.$message({
+                    message: addData,
+                    type: 'warning',
+                    duration: 2000
+                })
+                return false;
+            }
+            const { id,latitude,longitude } = addData.detail;
+            localStorage.setItem('addEventLng', longitude)
+            localStorage.setItem('addEventLat', latitude)
+            router.push(`/bigsimulator/${id}`) 
+            
+            // router.push(`/simulator/${id}`);
+        },  
+        cancelAdd (){
+            this.form = {
+                eventName: '',
+                cityId: []
+            }
+            this.addFlag = false
         },
         async getEventList(){
             const data = await getEventList();
@@ -98,14 +177,41 @@ export default {
             }
             this.eventList = data.detail;
         },
-        enterPRT(trackNum, id){
-            // trackNum > 10
+        async getCities(){
+            const data = await getCities({
+                cityName: ''
+            });
+            if(data.result != 0){
+                this.$message({
+                    message: data,
+                    type: 'warning',
+                    duration: 2000
+                })
+                return false;
+            }
+            this.cities = data.detail.cities;
+        },
+        enterPRT(eventItem){
+            const {
+                trackNum,
+                eventId,
+                latitude,
+                longitude
+            } = eventItem
+            if (latitude && longitude){
+                localStorage.setItem('addEventLng', longitude)
+                localStorage.setItem('addEventLat', latitude)
+            }else {
+                localStorage.setItem('addEventLng', 0)
+                localStorage.setItem('addEventLat', 0)
+            }
             if(true){
                 localStorage.setItem('bigData',true);
-                router.push(`/bigsimulator/${id}`)
+                // router.push(`/bigsimulator/${eventId}`) 大数据版本1.0
+                router.push(`/coolsimulator/${eventId}`)
             }else{
                 localStorage.setItem('bigData',""); 
-                router.push(`/simulator/${id}`);
+                router.push(`/simulator/${eventId}`);
             }
         },
         delEvent(eventId){
@@ -188,6 +294,31 @@ export default {
             margin: 0 auto;
         }
     }
+    .coverwrap{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;top: 0;
+        bottom: 0;right: 0;
+        .cover{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0;top: 0;
+            bottom: 0;right: 0;
+        }
+    }
+    .addForm{
+        position: absolute;
+        left: 50%;top: 180px;
+        margin-left: -200px;
+        width: 400px;
+        height: 220px;
+        background: #ffffff;
+        padding: 40px 0 0 30px;
+    }
+    
 }
+
 
 </style>

@@ -7,6 +7,8 @@ Vue.use(Vuex);
 
 const state = {
 	userInfo:{},
+	addEventLng: '',
+	addEventLat: '',
 	mapFlag:0, // 0 编辑 1 运行
 	bigData:false,
 	lineData:{

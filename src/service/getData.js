@@ -4,12 +4,17 @@ export const signin = data => fetch('post','/user/login',data)   // 注册&登�
 /**
  * 新建模拟事件
  */
-export const createEvent = (eventName) => fetch('post','/event/createNewEvent',{eventName})
+export const createEvent = params => fetch('post','/event/createNewEvent',params)
 
 /**
  * 模拟事件列表
  */
 export const getEventList = data => fetch('post','/event/overview',data)
+
+/**
+ * 所有城市列表
+ */
+export const getCities = data => fetch('post','/event/selectCity',data)
 
 /**
  * 删除模拟事件
